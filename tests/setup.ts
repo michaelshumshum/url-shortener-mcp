@@ -1,4 +1,4 @@
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaLibSql } from "@prisma/adapter-libsql";
 import "dotenv/config";
 import { execSync } from "node:child_process";
 import path from "node:path";
@@ -23,7 +23,7 @@ beforeAll(async () => {
     }
 
     // Create Prisma client with test database
-    const adapter = new PrismaBetterSqlite3({ url: testDbPath });
+    const adapter = new PrismaLibSql({ url: `file:${testDbPath}` });
     prisma = new PrismaClient({ adapter });
 });
 
