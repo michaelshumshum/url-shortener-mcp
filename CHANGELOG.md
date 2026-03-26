@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.0.0...v1.1.0) (2026-03-26)
+
+
+### Features
+
+* add bulk URL shortening ([c2fa3c1](https://github.com/michaelshumshum/url-shortener-mcp/commit/c2fa3c181f8b966ed83168f9de05157d71957fa5))
+
 # 1.0.0 (2026-03-26)
 
 
