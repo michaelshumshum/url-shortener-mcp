@@ -2,11 +2,14 @@
 import "express-async-errors";
 import "dotenv/config";
 import { execFileSync } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { join } from "node:path";
 import { app } from "./app";
 import { startExpiryJob } from "./jobs/expiry.job";
+import { generateSalt, hashKey } from "./lib/crypto";
 import { env } from "./lib/env";
 import { logger } from "./lib/logger";
+import { prisma } from "./lib/prisma";
 
 // Process-level error handlers
 process.on("unhandledRejection", (reason, promise) => {
@@ -33,8 +36,38 @@ try {
     );
 }
 
-startExpiryJob();
+async function main() {
+    // Auto-create a user if none exist
+    const userCount = await prisma.user.count();
+    if (userCount === 0) {
+        const rawKey = randomBytes(32).toString("hex");
+        const salt = generateSalt();
+        await prisma.user.create({
+            data: { key: hashKey(rawKey, salt), salt },
+        });
+        process.stdout.write(
+            [
+                "",
+                "╔══════════════════════════════════════════════════════════╗",
+                "║              API KEY CREATED — SAVE THIS NOW             ║",
+                "╠══════════════════════════════════════════════════════════╣",
+                `║  ${rawKey}  ║`,
+                "║                                                          ║",
+                "║  This key will not be shown again.                       ║",
+                "╚══════════════════════════════════════════════════════════╝",
+                "",
+            ].join("\n"),
+        );
+    }
 
-app.listen(env.PORT, () => {
-    logger.info(`[server] listening on port ${env.PORT}`);
+    startExpiryJob();
+
+    app.listen(env.PORT, () => {
+        logger.info(`[server] listening on port ${env.PORT}`);
+    });
+}
+
+main().catch((err) => {
+    logger.error("[startup] fatal error", err);
+    process.exit(1);
 });
