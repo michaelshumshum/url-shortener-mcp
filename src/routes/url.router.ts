@@ -130,5 +130,5 @@ export async function handleRedirect(
         return;
     }
 
-    res.redirect(301, url);
+    res.redirect(302, url);
 }
