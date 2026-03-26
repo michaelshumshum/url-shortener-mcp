@@ -6,7 +6,11 @@ import { z } from "zod";
  */
 export const createUrlSchema = z
     .object({
-        longUrl: z.url("Must be a valid URL"),
+        longUrl: z
+            .url("Must be a valid URL")
+            .refine((url) => /^https?:\/\//i.test(url), {
+                message: "Only http and https URLs are allowed",
+            }),
         ttl: z.number().int().positive().optional(),
         expiresAt: z.iso.datetime().optional(),
         slug: z.string().min(1).max(32).optional(),
