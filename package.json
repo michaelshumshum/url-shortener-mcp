@@ -2,7 +2,17 @@
     "name": "url-shortener-mcp",
     "version": "1.0.0",
     "description": "A URL shortener MCP server built with Express, Prisma, TypeScript, and SQLite",
-    "main": "dist/index.js",
+    "main": "dist/src/index.js",
+    "bin": {
+        "url-shortener-mcp": "dist/src/index.js"
+    },
+    "files": [
+        "dist/",
+        "generated/",
+        "prisma/migrations/",
+        "prisma/schema.prisma",
+        "prisma.config.ts"
+    ],
     "scripts": {
         "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
         "build": "tsc",
@@ -10,16 +20,16 @@
         "check": "biome check --write",
         "format": "biome format --write",
         "init-env": "./scripts/init_env.sh",
-        "create-user": "tsx scripts/create-user.ts",
+        "user:create": "tsx scripts/create-user.ts",
         "db:migrate": "prisma migrate dev",
         "db:generate": "prisma generate",
         "db:studio": "prisma studio",
-        "user:create": "tsx scripts/create-user.ts",
         "test": "vitest run",
         "test:watch": "vitest",
         "test:ui": "vitest --ui",
         "test:coverage": "vitest run --coverage",
-        "postinstall": "pnpm lefthook install"
+        "prepare": "lefthook install || true",
+        "prepublishOnly": "pnpm build"
     },
     "keywords": [],
     "author": "",
@@ -35,6 +45,7 @@
         "express-async-errors": "^3.1.1",
         "express-rate-limit": "^8.3.1",
         "node-cron": "^4.2.1",
+        "prisma": "^7.5.0",
         "zod": "^4.3.6"
     },
     "devDependencies": {
@@ -50,7 +61,6 @@
         "@vitest/ui": "^4.1.1",
         "lefthook": "^2.1.4",
         "nodemon": "^3.1.14",
-        "prisma": "^7.5.0",
         "supertest": "^7.2.2",
         "ts-node": "^10.9.2",
         "tsx": "^4.21.0",

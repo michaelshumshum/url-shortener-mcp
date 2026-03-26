@@ -52,7 +52,7 @@ export function validateQuery(schema: ZodSchema) {
             next(new ValidationError("Invalid query parameters", details));
             return;
         }
-        req.query = result.data;
+        req.query = result.data as typeof req.query;
         next();
     };
 }
