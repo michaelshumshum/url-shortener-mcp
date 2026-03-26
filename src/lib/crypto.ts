@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 
 const HASH_ALGORITHM = "sha256";
 
@@ -13,5 +13,8 @@ export function hashKey(key: string, salt: string): string {
 }
 
 export function verifyKey(key: string, salt: string, hash: string): boolean {
-    return hashKey(key, salt) === hash;
+    const computed = Buffer.from(hashKey(key, salt), "hex");
+    const expected = Buffer.from(hash, "hex");
+    if (computed.length !== expected.length) return false;
+    return timingSafeEqual(computed, expected);
 }
