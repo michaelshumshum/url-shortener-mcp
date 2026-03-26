@@ -53,8 +53,12 @@ app.get("/health", async (_req, res) => {
     }
 });
 
-app.use("/urls", limiter, authMiddleware, apiLoggingMiddleware, urlRouter);
-app.use("/mcp", authMiddleware, mcpLoggingMiddleware, mcpRouter);
+if (env.ENABLE_API) {
+    app.use("/urls", limiter, authMiddleware, apiLoggingMiddleware, urlRouter);
+}
+if (env.ENABLE_MCP) {
+    app.use("/mcp", authMiddleware, mcpLoggingMiddleware, mcpRouter);
+}
 app.get("/:slug", handleRedirect);
 
 // Global error handler - must be last

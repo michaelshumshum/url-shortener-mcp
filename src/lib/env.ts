@@ -12,6 +12,8 @@ export const env = createEnv({
         MAX_EXPIRY_SECONDS: z.coerce.number().int().positive().default(86400),
         HOSTNAME: z.string().default("localhost:3000"),
         HTTPS: z.coerce.boolean().default(false),
+        ENABLE_API: z.coerce.boolean().default(true),
+        ENABLE_MCP: z.coerce.boolean().default(true),
     },
     runtimeEnv: process.env,
 });

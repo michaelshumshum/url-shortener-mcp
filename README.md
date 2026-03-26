@@ -96,6 +96,8 @@ Add this server to your MCP client (e.g. Claude Desktop, Cursor):
 | `HTTPS` | `false` | Use `https://` scheme in short URLs |
 | `MAX_EXPIRY_SECONDS` | `86400` | Maximum allowed TTL (default: 24 hours) |
 | `EXPIRY_JOB_CRON` | `* * * * *` | Cron schedule for cleaning up expired URLs |
+| `ENABLE_API` | `true` | Enable the REST API (`/urls`) |
+| `ENABLE_MCP` | `true` | Enable the MCP server (`/mcp`) |
 
 ## Example Use Case
 
