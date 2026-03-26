@@ -46,16 +46,24 @@ async function main() {
         await prisma.user.create({
             data: { key: hashKey(rawKey, salt), salt },
         });
+        const inner = rawKey.length + 4;
+        const pad = (s: string) => s + " ".repeat(inner - s.length);
+        const center = (s: string) => {
+            const left = Math.floor((inner - s.length) / 2);
+            const right = inner - s.length - left;
+            return " ".repeat(left) + s + " ".repeat(right);
+        };
+        const hr = "═".repeat(inner);
         process.stdout.write(
             [
                 "",
-                "╔══════════════════════════════════════════════════════════╗",
-                "║              API KEY CREATED — SAVE THIS NOW             ║",
-                "╠══════════════════════════════════════════════════════════╣",
+                `╔${hr}╗`,
+                `║${center("API KEY CREATED — SAVE THIS NOW")}║`,
+                `╠${hr}╣`,
                 `║  ${rawKey}  ║`,
-                "║                                                          ║",
-                "║  This key will not be shown again.                       ║",
-                "╚══════════════════════════════════════════════════════════╝",
+                `║${" ".repeat(inner)}║`,
+                `║${pad("  This key will not be shown again.")}║`,
+                `╚${hr}╝`,
                 "",
             ].join("\n"),
         );
