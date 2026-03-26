@@ -1,6 +1,6 @@
 {
     "name": "url-shortener-mcp",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "A URL shortener MCP server built with Express, Prisma, TypeScript, and SQLite",
     "main": "dist/src/index.js",
     "bin": {

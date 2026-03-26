@@ -1,3 +1,11 @@
+## [1.2.1](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.2.0...v1.2.1) (2026-03-26)
+
+
+### Bug Fixes
+
+* postinstall with npx ([d7cf07c](https://github.com/michaelshumshum/url-shortener-mcp/commit/d7cf07ca33084571a814d8046d2a42e259fe7f0d))
+* test only on push, release never on push ([8a09dca](https://github.com/michaelshumshum/url-shortener-mcp/commit/8a09dcacf00172388da72165a0b8d6f95247326f))
+
 # [1.2.0](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.1.6...v1.2.0) (2026-03-26)
 
 
