@@ -1,3 +1,10 @@
+## [1.1.6](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.1.5...v1.1.6) (2026-03-26)
+
+
+### Bug Fixes
+
+* url-shortener-mcp.js executable ([69f52ab](https://github.com/michaelshumshum/url-shortener-mcp/commit/69f52abc971c5b070d5974826941a9e94a689d4e))
+
 ## [1.1.5](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.1.4...v1.1.5) (2026-03-26)
 
 
