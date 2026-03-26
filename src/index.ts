@@ -3,7 +3,7 @@ import "express-async-errors";
 import "dotenv/config";
 import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { join } from "node:path";
+import { resolve } from "node:path";
 import { app } from "./app";
 import { startExpiryJob } from "./jobs/expiry.job";
 import { generateSalt, hashKey } from "./lib/crypto";
@@ -22,24 +22,18 @@ process.on("uncaughtException", (error) => {
 });
 
 // Auto-run migrations on startup
-const packageRoot = join(__dirname, "../..");
-// Resolve the prisma CLI entry point via require.resolve so it works whether
-// prisma is a direct dependency or hoisted by npm/npx into a parent node_modules.
-const prismaBinJs = (() => {
-    try {
-        return require.resolve("prisma/dist/bin.js");
-    } catch {
-        // Fallback: resolve via package.json location
-        const pkgJson = require.resolve("prisma/package.json");
-        return join(pkgJson, "..", "dist", "bin.js");
-    }
-})();
+const packageRoot = resolve(".");
+const schemaPath = resolve("prisma/schema.prisma");
 try {
-    execFileSync(process.execPath, [prismaBinJs, "migrate", "deploy"], {
-        cwd: packageRoot,
-        stdio: "inherit",
-        env: process.env,
-    });
+    execFileSync(
+        "npx",
+        ["prisma", "migrate", "deploy", "--schema", schemaPath],
+        {
+            cwd: packageRoot,
+            stdio: "inherit",
+            env: process.env,
+        },
+    );
 } catch {
     logger.error(
         "[startup] migrations failed — ensure DATABASE_URL is set and the database is accessible",
