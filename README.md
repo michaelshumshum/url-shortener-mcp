@@ -4,6 +4,8 @@ A URL shortener exposed as an [MCP](https://modelcontextprotocol.io/) server. Bu
 
 Shorten URLs, set expiry times, and manage your links directly from any MCP-compatible LLM client.
 
+> **This server is designed to be deployed remotely.** Short URLs are only useful if they resolve publicly, and MCP clients connect over HTTP — so the server should run on a machine with a public hostname (e.g. a VPS, cloud VM, or PaaS). Set `HOSTNAME` to your public domain and `HTTPS=true` in production. Running it on `localhost` is fine for development, but short links won't be shareable outside your machine.
+
 ## Getting Started
 
 ### 1. Install dependencies
@@ -67,7 +69,7 @@ Add this server to your MCP client (e.g. Claude Desktop, Cursor):
 {
   "mcpServers": {
     "url-shortener": {
-      "url": "http://localhost:3000/mcp",
+      "url": "https://your-domain.com/mcp",
       "headers": {
         "Authorization": "Bearer <your-api-key>"
       }
@@ -75,6 +77,8 @@ Add this server to your MCP client (e.g. Claude Desktop, Cursor):
   }
 }
 ```
+
+Replace `https://your-domain.com` with the public URL of your deployed server.
 
 ## Available Tools
 
