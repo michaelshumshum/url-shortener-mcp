@@ -1,9 +1,14 @@
 import { randomUUID } from "node:crypto";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import {
+    McpServer,
+    ResourceTemplate,
+} from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { CreateMessageResultSchema } from "@modelcontextprotocol/sdk/types.js";
 import { type Request, type Response, Router } from "express";
 import { z } from "zod";
 import {
+    AlreadyExistsError,
     ExpiryTooLargeError,
     ForbiddenError,
     NotFoundError,
@@ -32,21 +37,156 @@ function createMcpServer(userId: string): McpServer {
         version: "1.0.0",
     });
 
-    // Use shared schema for shorten_url tool
+    // ── Resources ────────────────────────────────────────────────────────────
+
+    server.registerResource(
+        "all-urls",
+        "urls://all",
+        {
+            description: "All your shortened URLs as JSON",
+            mimeType: "application/json",
+        },
+        async (_uri) => {
+            const urls = await listUrls(userId);
+            return {
+                contents: [
+                    {
+                        uri: "urls://all",
+                        mimeType: "application/json",
+                        text: JSON.stringify(urls, null, 2),
+                    },
+                ],
+            };
+        },
+    );
+
+    server.registerResource(
+        "url-by-slug",
+        new ResourceTemplate("urls://{slug}", { list: undefined }),
+        {
+            description: "A single shortened URL by slug",
+            mimeType: "application/json",
+        },
+        async (uri, { slug }) => {
+            try {
+                const url = await getUrl(String(slug), userId);
+                return {
+                    contents: [
+                        {
+                            uri: uri.href,
+                            mimeType: "application/json",
+                            text: JSON.stringify(url, null, 2),
+                        },
+                    ],
+                };
+            } catch (err) {
+                if (
+                    err instanceof NotFoundError ||
+                    err instanceof ForbiddenError
+                ) {
+                    return {
+                        contents: [
+                            {
+                                uri: uri.href,
+                                mimeType: "text/plain",
+                                text: (err as Error).message,
+                            },
+                        ],
+                    };
+                }
+                throw err;
+            }
+        },
+    );
+
+    // ── Prompts ──────────────────────────────────────────────────────────────
+
+    server.registerPrompt(
+        "suggest_shorten",
+        {
+            description:
+                "Suggest shortening a long URL using this MCP server. Use this whenever a long URL appears in context.",
+            argsSchema: {
+                longUrl: z.string().url().describe("The long URL to shorten"),
+            },
+        },
+        ({ longUrl }) => ({
+            description: "Suggest shortening a URL",
+            messages: [
+                {
+                    role: "user",
+                    content: {
+                        type: "text",
+                        text: `I have this long URL: ${longUrl}`,
+                    },
+                },
+                {
+                    role: "assistant",
+                    content: {
+                        type: "text",
+                        text: `That's a long URL! I can shorten it for you using the \`shorten_url\` tool. Would you like me to create a short link? I can also set a custom slug, expiry time, or TTL.`,
+                    },
+                },
+            ],
+        }),
+    );
+
+    // ── Tools ────────────────────────────────────────────────────────────────
+
     server.registerTool(
         "shorten_url",
         {
             description:
-                "Create a new shortened URL. Optionally provide a TTL or expiry date.",
+                "Create a new shortened URL. Optionally provide a TTL or expiry date. If no slug is provided, an AI-suggested slug will be used.",
             inputSchema: createUrlSchema.shape,
         },
-        async ({ longUrl, ttl, expiresAt, slug }) => {
+        async ({ longUrl, ttl, expiresAt, slug }, extra) => {
+            let resolvedSlug = slug;
+
+            // If no slug provided and the client supports sampling, ask the LLM to suggest one
+            const supportsSampling =
+                !!server.server.getClientCapabilities()?.sampling;
+            if (!resolvedSlug && supportsSampling) {
+                try {
+                    const result = await extra.sendRequest(
+                        {
+                            method: "sampling/createMessage",
+                            params: {
+                                messages: [
+                                    {
+                                        role: "user",
+                                        content: {
+                                            type: "text",
+                                            text: `Suggest a short, memorable, URL-safe slug (lowercase, hyphens allowed, no spaces, max 30 chars) for this URL: ${longUrl}\n\nReply with ONLY the slug, nothing else.`,
+                                        },
+                                    },
+                                ],
+                                maxTokens: 20,
+                            },
+                        },
+                        CreateMessageResultSchema,
+                    );
+                    if (result.content.type === "text") {
+                        const suggested = result.content.text
+                            .trim()
+                            .toLowerCase()
+                            .replace(/[^a-z0-9-]/g, "-")
+                            .replace(/-+/g, "-")
+                            .replace(/^-|-$/g, "")
+                            .slice(0, 30);
+                        if (suggested) resolvedSlug = suggested;
+                    }
+                } catch {
+                    // Sampling not supported or failed — fall back to random slug generation
+                }
+            }
+
             try {
                 const url = await createUrl({
                     longUrl,
                     userId,
                     ttl,
-                    slug,
+                    slug: resolvedSlug,
                     expiresAt: expiresAt ? new Date(expiresAt) : undefined,
                 });
                 return {
@@ -58,9 +198,14 @@ function createMcpServer(userId: string): McpServer {
                     ],
                 };
             } catch (err) {
-                if (err instanceof ExpiryTooLargeError) {
+                if (
+                    err instanceof ExpiryTooLargeError ||
+                    err instanceof AlreadyExistsError
+                ) {
                     return {
-                        content: [{ type: "text", text: err.message }],
+                        content: [
+                            { type: "text", text: (err as Error).message },
+                        ],
                         isError: true,
                     };
                 }
@@ -95,7 +240,9 @@ function createMcpServer(userId: string): McpServer {
                     err instanceof ForbiddenError
                 ) {
                     return {
-                        content: [{ type: "text", text: err.message }],
+                        content: [
+                            { type: "text", text: (err as Error).message },
+                        ],
                         isError: true,
                     };
                 }
@@ -148,7 +295,9 @@ function createMcpServer(userId: string): McpServer {
                     err instanceof ForbiddenError
                 ) {
                     return {
-                        content: [{ type: "text", text: err.message }],
+                        content: [
+                            { type: "text", text: (err as Error).message },
+                        ],
                         isError: true,
                     };
                 }
