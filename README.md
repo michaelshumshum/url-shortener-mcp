@@ -6,7 +6,46 @@ Shorten URLs, set expiry times, and manage your links directly from any MCP-comp
 
 > **This server is designed to be deployed remotely.** Short URLs are only useful if they resolve publicly, and MCP clients connect over HTTP — so the server should run on a machine with a public hostname (e.g. a VPS, cloud VM, or PaaS). Set `HOSTNAME` to your public domain and `HTTPS=true` in production. Running it on `localhost` is fine for development, but short links won't be shareable outside your machine.
 
-## Getting Started
+## Quick Start (npx)
+
+The fastest way to get running — no cloning required:
+
+```bash
+npx url-shortener-mcp --port 3000 --hostname your-domain.com --https true
+```
+
+On first run the server will:
+1. Create a fresh SQLite database and apply all migrations automatically
+2. Generate an API key and print it once — **save it, it will not be shown again**
+3. Start listening
+
+All environment variables can be passed as CLI flags:
+
+```bash
+npx url-shortener-mcp \
+  --port 3000 \
+  --database-url file:/data/urls.db \
+  --hostname your-domain.com \
+  --https true \
+  --enable-api true \
+  --enable-mcp true
+```
+
+| Flag | Env var |
+|------|---------|
+| `--port` / `-p` | `PORT` |
+| `--database-url` | `DATABASE_URL` |
+| `--hostname` | `HOSTNAME` |
+| `--https` | `HTTPS` |
+| `--enable-api` | `ENABLE_API` |
+| `--enable-mcp` | `ENABLE_MCP` |
+| `--max-expiry-seconds` | `MAX_EXPIRY_SECONDS` |
+
+Flags take precedence over values set in a `.env` file.
+
+---
+
+## Getting Started (from source)
 
 ### 1. Install dependencies
 
