@@ -1,3 +1,11 @@
+## [1.1.1](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.1.0...v1.1.1) (2026-03-26)
+
+
+### Bug Fixes
+
+* add rate limiting to MCP and redirect endpoints ([38c7895](https://github.com/michaelshumshum/url-shortener-mcp/commit/38c7895da9ca83faaf08aabd46c55473424ffbdc))
+* restrict longUrl to http/https schemes only ([47f77e9](https://github.com/michaelshumshum/url-shortener-mcp/commit/47f77e9bf88fe6f6509ece1d49da49649f3b0c33))
+
 # [1.1.0](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.0.0...v1.1.0) (2026-03-26)
 
 
