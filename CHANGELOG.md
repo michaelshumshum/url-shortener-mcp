@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.1.1...v1.1.2) (2026-03-26)
+
+
+### Bug Fixes
+
+* add helmet security headers ([371ef8c](https://github.com/michaelshumshum/url-shortener-mcp/commit/371ef8cc04fda5bc97851d94e78ae71b47f4d66d))
+
 ## [1.1.1](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.1.0...v1.1.1) (2026-03-26)
 
 
