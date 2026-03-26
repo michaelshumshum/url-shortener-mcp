@@ -83,7 +83,8 @@ function resolveExpiry(input: CreateUrlInput): Date {
         return new Date(Date.now() + input.ttl * 1000);
     }
 
-    return new Date(Date.now() + maxSeconds * 1000); // Default expiry if none provided
+    // All URLs expire; cap at MAX_EXPIRY_SECONDS when no ttl/expiresAt is given
+    return new Date(Date.now() + maxSeconds * 1000);
 }
 
 /**

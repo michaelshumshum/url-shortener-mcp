@@ -108,7 +108,7 @@ function createMcpServer(userId: string): McpServer {
         "list_urls",
         {
             description: "List all your shortened URLs.",
-            inputSchema: listUrlsSchema,
+            inputSchema: listUrlsSchema.shape,
         },
         async ({ order, orderBy }) => {
             const urls = await listUrls(userId, orderBy, order);
