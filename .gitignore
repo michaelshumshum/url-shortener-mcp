@@ -6,6 +6,9 @@ node_modules/
 .env.local
 .env.*.local
 
+# npm auth (written dynamically by CI)
+.npmrc
+
 # Build output
 dist/
 build/
