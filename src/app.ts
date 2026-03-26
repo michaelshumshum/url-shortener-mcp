@@ -18,14 +18,21 @@ export const app: Express = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rate limiter for URL creation and management
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
+const rateLimitDefaults = {
+    windowMs: 15 * 60 * 1000,
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: "Too many requests, please try again later" },
-});
+};
+
+// Authenticated API endpoints
+const limiter = rateLimit({ ...rateLimitDefaults, max: 100 });
+
+// MCP — authenticated but can be chatty with many tool calls per session
+const mcpLimiter = rateLimit({ ...rateLimitDefaults, max: 300 });
+
+// Public redirect endpoint — higher ceiling, still guards against enumeration
+const redirectLimiter = rateLimit({ ...rateLimitDefaults, max: 300 });
 
 app.get("/health", async (_req, res) => {
     try {
@@ -48,9 +55,15 @@ if (env.ENABLE_API) {
     app.use("/urls", limiter, authMiddleware, apiLoggingMiddleware, urlRouter);
 }
 if (env.ENABLE_MCP) {
-    app.use("/mcp", authMiddleware, mcpLoggingMiddleware, mcpRouter);
+    app.use(
+        "/mcp",
+        mcpLimiter,
+        authMiddleware,
+        mcpLoggingMiddleware,
+        mcpRouter,
+    );
 }
-app.get("/:slug", handleRedirect);
+app.get("/:slug", redirectLimiter, handleRedirect);
 
 // Global error handler - must be last
 app.use(errorHandler);
