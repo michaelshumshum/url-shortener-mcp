@@ -31,9 +31,10 @@ try {
         env: process.env,
     });
 } catch {
-    logger.warn(
-        "[startup] could not apply migrations automatically — ensure DATABASE_URL is set and run `prisma migrate deploy` manually",
+    logger.error(
+        "[startup] migrations failed — ensure DATABASE_URL is set and the database is accessible",
     );
+    process.exit(1);
 }
 
 async function main() {
