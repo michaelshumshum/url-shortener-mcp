@@ -28,7 +28,7 @@
         "test:watch": "vitest",
         "test:ui": "vitest --ui",
         "test:coverage": "vitest run --coverage",
-        "prepare": "lefthook install || true",
+        "prepare": "lefthook install",
         "prepublishOnly": "pnpm build"
     },
     "keywords": [],
