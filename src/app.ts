@@ -1,22 +1,12 @@
-import express, {
-    type Express,
-    type NextFunction,
-    type Request,
-    type Response,
-} from "express";
+import "express-async-errors";
+import express, { type Express } from "express";
 import rateLimit from "express-rate-limit";
 import { env } from "./lib/env";
-import {
-    AlreadyExistsError,
-    ExpiryTooLargeError,
-    ForbiddenError,
-    NotFoundError,
-    ValidationError,
-} from "./lib/errors";
 import { logger } from "./lib/logger";
 import { prisma } from "./lib/prisma";
 import { mcpRouter } from "./mcp/server";
 import { authMiddleware } from "./middleware/auth";
+import { errorHandler } from "./middleware/error";
 import {
     apiLoggingMiddleware,
     mcpLoggingMiddleware,
@@ -63,39 +53,4 @@ if (env.ENABLE_MCP) {
 app.get("/:slug", handleRedirect);
 
 // Global error handler - must be last
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-    logger.error("[error]", err);
-
-    // Custom error handling
-    if (err instanceof ValidationError) {
-        res.status(400).json({
-            error: err.message,
-            ...(err.details && { details: err.details }),
-        });
-        return;
-    }
-
-    if (
-        err instanceof ExpiryTooLargeError ||
-        err instanceof AlreadyExistsError
-    ) {
-        res.status(400).json({ error: err.message });
-        return;
-    }
-
-    if (err instanceof NotFoundError) {
-        res.status(404).json({ error: err.message });
-        return;
-    }
-
-    if (err instanceof ForbiddenError) {
-        res.status(403).json({ error: err.message });
-        return;
-    }
-
-    // Generic errors - don't leak details in production
-    const message =
-        env.NODE_ENV === "production" ? "Internal server error" : err.message;
-
-    res.status(500).json({ error: message });
-});
+app.use(errorHandler);
