@@ -3,7 +3,8 @@ import "express-async-errors";
 import "dotenv/config";
 import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { resolve } from "node:path";
+import { mkdirSync } from "node:fs";
+import { basename, dirname, resolve } from "node:path";
 import { app } from "./app";
 import { startExpiryJob } from "./jobs/expiry.job";
 import { generateSalt, hashKey } from "./lib/crypto";
@@ -21,17 +22,30 @@ process.on("uncaughtException", (error) => {
     process.exit(1);
 });
 
-// Auto-run migrations on startup
-const packageRoot = resolve(".");
-const schemaPath = resolve("prisma/schema.prisma");
+// __dirname is 'dist/src' when compiled, 'src' when running via ts-node
+const packageRoot =
+    basename(resolve(__dirname, "..")) === "dist"
+        ? resolve(__dirname, "../..")
+        : resolve(__dirname, "..");
+// Resolve absolute DB path (same logic as prisma.ts) and ensure directory exists
+const dbRelPath = env.DATABASE_URL.replace(/^file:/, "");
+const dbAbsPath = resolve(process.cwd(), dbRelPath);
+mkdirSync(dirname(dbAbsPath), { recursive: true });
+
 try {
     execFileSync(
         "npx",
-        ["prisma", "migrate", "deploy", "--schema", schemaPath],
+        [
+            "prisma",
+            "migrate",
+            "deploy",
+            "--schema",
+            resolve(packageRoot, "prisma/schema.prisma"),
+        ],
         {
             cwd: packageRoot,
             stdio: "inherit",
-            env: process.env,
+            env: { ...process.env, DATABASE_URL: `file:${dbAbsPath}` },
         },
     );
 } catch {
