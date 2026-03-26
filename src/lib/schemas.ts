@@ -1,0 +1,40 @@
+import { z } from "zod";
+
+/**
+ * Schema for creating a new shortened URL
+ * Validates longUrl format, ttl/expiresAt constraints, and ensures mutual exclusivity
+ */
+export const createUrlSchema = z
+    .object({
+        longUrl: z.url("Must be a valid URL"),
+        ttl: z.number().int().positive().optional(),
+        expiresAt: z.iso.datetime().optional(),
+        slug: z.string().min(1).max(32).optional(),
+    })
+    .refine((data) => !(data.ttl && data.expiresAt), {
+        message: "Cannot specify both ttl and expiresAt",
+    })
+    .refine(
+        (data) => {
+            if (data.expiresAt) {
+                const date = new Date(data.expiresAt);
+                return date > new Date();
+            }
+            return true;
+        },
+        { message: "expiresAt must be in the future" },
+    );
+
+export const listUrlsSchema = z.object({
+    orderBy: z.enum(["createdAt", "expiresAt", "clicks"]).optional(),
+    order: z.enum(["asc", "desc"]).optional(),
+});
+
+/**
+ * Schema for validating slug path parameters
+ */
+export const slugParamSchema = z.object({
+    slug: z.string().min(1).max(32),
+});
+
+export type CreateUrlInput = z.infer<typeof createUrlSchema>;

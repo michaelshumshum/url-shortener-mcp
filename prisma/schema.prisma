@@ -1,0 +1,33 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client"
+    output   = "../generated/prisma"
+}
+
+datasource db {
+    provider = "sqlite"
+}
+
+model Url {
+    id        String    @id @default(cuid())
+    slug      String    @unique
+    longUrl   String
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    clicks    Int       @default(0)
+    expiresAt DateTime?
+    userId    String
+    user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([userId, createdAt(sort: Desc)])
+    @@index([expiresAt])
+}
+
+model User {
+    id   String @id @default(cuid())
+    key  String @unique
+    salt String
+    urls Url[]
+}

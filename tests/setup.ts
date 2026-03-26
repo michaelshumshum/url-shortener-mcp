@@ -1,0 +1,34 @@
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import "dotenv/config";
+import { execSync } from "node:child_process";
+import path from "node:path";
+import { afterAll, beforeAll } from "vitest";
+import { PrismaClient } from "../generated/prisma/client";
+
+// Set test database URL before anything else
+const testDbPath = path.resolve(process.cwd(), "tests/test.db");
+process.env.DATABASE_URL = `file:${testDbPath}`;
+
+let prisma: PrismaClient;
+
+beforeAll(async () => {
+    // Run migrations on test database
+    try {
+        execSync("pnpm prisma migrate deploy", {
+            env: { ...process.env, DATABASE_URL: `file:${testDbPath}` },
+            stdio: "inherit",
+        });
+    } catch (err) {
+        console.error("Failed to run migrations:", err);
+    }
+
+    // Create Prisma client with test database
+    const adapter = new PrismaBetterSqlite3({ url: testDbPath });
+    prisma = new PrismaClient({ adapter });
+});
+
+afterAll(async () => {
+    await prisma.$disconnect();
+});
+
+export { prisma };
