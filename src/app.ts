@@ -13,6 +13,7 @@ import {
     NotFoundError,
     ValidationError,
 } from "./lib/errors";
+import { logger } from "./lib/logger";
 import { prisma } from "./lib/prisma";
 import { mcpRouter } from "./mcp/server";
 import { authMiddleware } from "./middleware/auth";
@@ -45,7 +46,7 @@ app.get("/health", async (_req, res) => {
             timestamp: new Date().toISOString(),
         });
     } catch (err) {
-        console.error("[health] Database check failed:", err);
+        logger.error("[health] database check failed", err);
         res.status(503).json({
             status: "error",
             database: "disconnected",
@@ -63,7 +64,7 @@ app.get("/:slug", handleRedirect);
 
 // Global error handler - must be last
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-    console.error("[Error]", err);
+    logger.error("[error]", err);
 
     // Custom error handling
     if (err instanceof ValidationError) {

@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import type { User } from "../../generated/prisma/client";
 import { verifyKey } from "../lib/crypto";
+import { logger } from "../lib/logger";
 import { prisma } from "../lib/prisma";
 
 // In-memory cache for users to avoid loading all users on every request
@@ -66,7 +67,7 @@ export async function authMiddleware(
         req.user = user;
         next();
     } catch (err) {
-        console.error("[authMiddleware] Error:", err);
+        logger.error("[authMiddleware] error", err);
         res.status(500).json({ error: "Internal server error" });
     }
 }

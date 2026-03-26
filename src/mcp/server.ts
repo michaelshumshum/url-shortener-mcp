@@ -8,6 +8,7 @@ import {
     ForbiddenError,
     NotFoundError,
 } from "../lib/errors";
+import { logger } from "../lib/logger";
 import { createUrlSchema, listUrlsSchema } from "../lib/schemas";
 import {
     createUrl,
@@ -214,7 +215,7 @@ mcpRouter.post("/", async (req: Request, res: Response) => {
 
         await transport.handleRequest(req, res, req.body);
     } catch (err) {
-        console.error("[MCP POST] Error:", err);
+        logger.error("[MCP POST] error", err);
         res.status(500).json({ error: "Failed to handle MCP request" });
     }
 });
@@ -237,7 +238,7 @@ mcpRouter.get("/", async (req: Request, res: Response) => {
 
         await session.transport.handleRequest(req, res);
     } catch (err) {
-        console.error("[MCP GET] Error:", err);
+        logger.error("[MCP GET] error", err);
         res.status(500).json({ error: "Failed to handle SSE request" });
     }
 });
@@ -262,7 +263,7 @@ mcpRouter.delete("/", async (req: Request, res: Response) => {
         sessions.delete(sessionId);
         res.status(204).end();
     } catch (err) {
-        console.error("[MCP DELETE] Error:", err);
+        logger.error("[MCP DELETE] error", err);
         res.status(500).json({ error: "Failed to close session" });
     }
 });

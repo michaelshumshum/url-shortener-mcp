@@ -1,5 +1,6 @@
 import { schedule } from "node-cron";
 import { env } from "../lib/env";
+import { logger } from "../lib/logger";
 import { deleteExpiredUrls } from "../services/url.service";
 
 export function startExpiryJob(): void {
@@ -7,12 +8,12 @@ export function startExpiryJob(): void {
         try {
             const count = await deleteExpiredUrls();
             if (count > 0) {
-                console.log(`[expiry-job] Deleted ${count} expired URL(s)`);
+                logger.info(`[expiry-job] deleted ${count} expired URL(s)`);
             }
         } catch (err) {
-            console.error("[expiry-job] Error deleting expired URLs:", err);
+            logger.error("[expiry-job] error deleting expired URLs", err);
         }
     });
 
-    console.log(`[expiry-job] Scheduled with cron: "${env.EXPIRY_JOB_CRON}"`);
+    logger.info(`[expiry-job] scheduled with cron: "${env.EXPIRY_JOB_CRON}"`);
 }
