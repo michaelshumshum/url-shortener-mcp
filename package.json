@@ -22,21 +22,29 @@
         "test:ui": "vitest --ui",
         "test:coverage": "vitest run --coverage",
         "prepare": "[ -d .git ] && lefthook install || true",
-        "postinstall": "prisma generate && tsc"
+        "postinstall": "[ -d .git ] && prisma generate || true"
     },
     "repository": {
         "type": "git",
         "url": "https://github.com/michaelshumshum/url-shortener-mcp.git"
     },
+    "files": [
+        "dist/",
+        "bin/",
+        "prisma/schema.prisma",
+        "prisma/migrations/",
+        "prisma.config.ts",
+        ".env.example"
+    ],
     "keywords": [],
     "author": "",
     "license": "MIT",
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.28.0",
-        "@prisma/adapter-better-sqlite3": "^7.5.0",
+        "@libsql/client": "^0.14.0",
+        "@prisma/adapter-libsql": "^7.5.0",
         "@prisma/client": "^7.5.0",
         "@t3-oss/env-core": "^0.13.11",
-        "better-sqlite3": "^12.8.0",
         "dotenv": "^17.3.1",
         "express": "^4.22.1",
         "express-async-errors": "^3.1.1",
@@ -57,7 +65,6 @@
         "@semantic-release/github": "^12.0.6",
         "@semantic-release/npm": "^13.1.5",
         "@semantic-release/release-notes-generator": "^14.1.0",
-        "@types/better-sqlite3": "^7.6.13",
         "@types/express": "^5.0.6",
         "@types/node": "^25.5.0",
         "@types/node-cron": "^3.0.11",
@@ -76,8 +83,7 @@
             "@prisma/engines",
             "esbuild",
             "prisma",
-            "lefthook",
-            "better-sqlite3"
+            "lefthook"
         ]
     }
 }
