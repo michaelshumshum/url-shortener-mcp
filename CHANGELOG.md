@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.1.2...v1.1.3) (2026-03-26)
+
+
+### Bug Fixes
+
+* use 302 redirect instead of 301 to prevent browser caching ([b8a099b](https://github.com/michaelshumshum/url-shortener-mcp/commit/b8a099bae0c98837a651f3ba5779e9116266ef0a))
+
 ## [1.1.2](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.1.1...v1.1.2) (2026-03-26)
 
 
