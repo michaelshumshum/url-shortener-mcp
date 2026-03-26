@@ -1,12 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { env } from "../lib/env";
-import {
-    AlreadyExistsError,
-    ExpiryTooLargeError,
-    ForbiddenError,
-    NotFoundError,
-    ValidationError,
-} from "../lib/errors";
+import { ValidationError } from "../lib/errors";
 import { logger } from "../lib/logger";
 
 export function errorHandler(
@@ -15,36 +9,17 @@ export function errorHandler(
     res: Response,
     _next: NextFunction,
 ) {
-    logger.error("[error]", err);
-
-    if (err instanceof ValidationError) {
-        res.status(400).json({
-            error: err.message,
-            ...(err.details && { details: err.details }),
-        });
+    if ("statusCode" in err && typeof err.statusCode === "number") {
+        const body: Record<string, unknown> = { error: err.message };
+        if (err instanceof ValidationError && err.details) {
+            body.details = err.details;
+        }
+        res.status(err.statusCode).json(body);
         return;
     }
 
-    if (
-        err instanceof ExpiryTooLargeError ||
-        err instanceof AlreadyExistsError
-    ) {
-        res.status(400).json({ error: err.message });
-        return;
-    }
-
-    if (err instanceof NotFoundError) {
-        res.status(404).json({ error: err.message });
-        return;
-    }
-
-    if (err instanceof ForbiddenError) {
-        res.status(403).json({ error: err.message });
-        return;
-    }
-
+    logger.error("[error] unhandled", err);
     const message =
         env.NODE_ENV === "production" ? "Internal server error" : err.message;
-
     res.status(500).json({ error: message });
 }
