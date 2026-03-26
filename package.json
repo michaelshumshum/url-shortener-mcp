@@ -23,7 +23,7 @@
     },
     "keywords": [],
     "author": "",
-    "license": "ISC",
+    "license": "MIT",
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.28.0",
         "@prisma/adapter-better-sqlite3": "^7.5.0",
