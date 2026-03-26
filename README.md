@@ -129,15 +129,34 @@ Add this server to your MCP client (e.g. Claude Desktop, Cursor):
 
 Replace `https://your-domain.com` with the public URL of your deployed server.
 
-## Available Tools
+## MCP Capabilities
+
+### Tools
 
 | Tool | Description |
 |------|-------------|
-| `shorten_url` | Create a shortened URL with optional TTL, expiry date, or custom slug |
+| `shorten_url` | Create a shortened URL with optional TTL, expiry date, or custom slug. When no slug is provided and the client supports [sampling](#sampling), the connected LLM will suggest one. |
 | `get_url` | Get details and click count for a URL you own |
 | `list_urls` | List all your shortened URLs |
 | `delete_url` | Delete a shortened URL by slug |
 | `delete_all_urls` | Delete all your shortened URLs |
+
+### Resources
+
+| URI | Description |
+|-----|-------------|
+| `urls://all` | All your shortened URLs as JSON |
+| `urls://{slug}` | A single shortened URL by slug |
+
+### Prompts
+
+| Prompt | Args | Description |
+|--------|------|-------------|
+| `suggest_shorten` | `longUrl` | Injects a user+assistant message pair into the conversation suggesting the user shorten the given URL. Designed to be invoked automatically by clients when a long URL appears in context. |
+
+### Sampling
+
+When a client supports the [MCP sampling](https://modelcontextprotocol.io/docs/concepts/sampling) capability and no `slug` is provided to `shorten_url`, the server asks the connected LLM to suggest a short, memorable slug based on the destination URL. If sampling is not supported or fails, a random slug is generated instead.
 
 ## Environment Variables
 
@@ -152,13 +171,25 @@ Replace `https://your-domain.com` with the public URL of your deployed server.
 | `ENABLE_API` | `true` | Enable the REST API (`/urls`) |
 | `ENABLE_MCP` | `true` | Enable the MCP server (`/mcp`) |
 
-## Example Use Case
+## Example Use Cases
 
 Once configured, you can ask your LLM assistant:
 
 > "Shorten https://github.com/anthropics/anthropic-sdk-python/blob/main/README.md with a custom slug `anthropic-py` that expires in 12 hours, then list all my active URLs."
 
 The assistant will call `shorten_url` with `longUrl`, `slug`, and `ttl` set appropriately, then call `list_urls` to show you the results — returning something like `http://localhost:3000/anthropic-py`.
+
+If no slug is provided and sampling is supported, the assistant will automatically suggest one:
+
+> "Shorten https://github.com/anthropics/anthropic-sdk-python/blob/main/README.md"
+
+→ The server asks the LLM to suggest a slug (e.g. `anthropic-sdk-py`), then creates the short URL using it.
+
+You can also read your URLs as resources:
+
+> "Show me everything at `urls://all`"
+
+→ The client fetches the `urls://all` resource and the assistant summarises your active links.
 
 ## REST API
 
