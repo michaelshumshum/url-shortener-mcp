@@ -38,3 +38,21 @@ export function validateParams(schema: ZodSchema) {
         next();
     };
 }
+
+/**
+ * Middleware to validate request query string against a Zod schema
+ * @param schema - The Zod schema to validate against
+ * @returns Express middleware function
+ */
+export function validateQuery(schema: ZodSchema) {
+    return (req: Request, _res: Response, next: NextFunction) => {
+        const result = schema.safeParse(req.query);
+        if (!result.success) {
+            const details = result.error.flatten().fieldErrors;
+            next(new ValidationError("Invalid query parameters", details));
+            return;
+        }
+        req.query = result.data;
+        next();
+    };
+}

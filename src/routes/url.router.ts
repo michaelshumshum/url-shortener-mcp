@@ -1,8 +1,17 @@
 import { type IRouter, type Request, type Response, Router } from "express";
-import { createUrlSchema, slugParamSchema } from "../lib/schemas";
-import { validateBody, validateParams } from "../middleware/validate";
+import {
+    createUrlSchema,
+    listUrlsSchema,
+    slugParamSchema,
+} from "../lib/schemas";
+import {
+    validateBody,
+    validateParams,
+    validateQuery,
+} from "../middleware/validate";
 import {
     createUrl,
+    deleteAllUrls,
     deleteUrl,
     getUrl,
     listUrls,
@@ -12,31 +21,32 @@ import {
 export const urlRouter: IRouter = Router();
 
 // GET /urls — list URLs owned by the authenticated user
-urlRouter.get("/", async (req: Request, res: Response) => {
-    const urls = await listUrls(req.user.id);
-    res.json(
-        urls.map((url) => ({
-            ...url,
-            shortUrl: `${process.env.HOSTNAME}/${url.slug}`,
-        })),
-    );
-});
+urlRouter.get(
+    "/",
+    validateQuery(listUrlsSchema),
+    async (req: Request, res: Response) => {
+        const { orderBy, order } = req.query as {
+            orderBy?: "createdAt" | "expiresAt" | "clicks";
+            order?: "asc" | "desc";
+        };
+        const urls = await listUrls(req.user.id, orderBy, order);
+        res.json(urls);
+    },
+);
 
 // POST /urls — create a new shortened URL owned by the authenticated user
 urlRouter.post("/", validateBody(createUrlSchema), async (req, res) => {
-    const { longUrl, ttl, expiresAt } = req.body;
+    const { longUrl, ttl, expiresAt, slug } = req.body;
 
     const url = await createUrl({
         longUrl,
         userId: req.user.id,
         ttl,
+        slug,
         expiresAt: expiresAt ? new Date(expiresAt) : undefined,
     });
 
-    res.status(201).json({
-        ...url,
-        shortUrl: `${process.env.HOSTNAME}/${url.slug}`,
-    });
+    res.status(201).json(url);
 });
 
 // GET /urls/:slug — get a single URL record (owner only)
@@ -44,25 +54,26 @@ urlRouter.get(
     "/:slug",
     validateParams(slugParamSchema),
     async (req: Request, res: Response) => {
-        // After validation, we know slug exists
         const { slug } = req.params as { slug: string };
         const url = await getUrl(slug, req.user.id);
-        res.json({
-            ...url,
-            shortUrl: `${process.env.HOSTNAME}/${url.slug}`,
-        });
+        res.json(url);
     },
 );
+
+// DELETE /urls — delete all shortened URLs (owner only)
+urlRouter.delete("/", async (req: Request, res: Response) => {
+    const count = await deleteAllUrls(req.user.id);
+    res.json({ deleted: count });
+});
 
 // DELETE /urls/:slug — delete a shortened URL (owner only)
 urlRouter.delete(
     "/:slug",
     validateParams(slugParamSchema),
     async (req: Request, res: Response) => {
-        // After validation, we know slug exists
         const { slug } = req.params as { slug: string };
-        await deleteUrl(slug, req.user.id);
-        res.json({ message: "Deleted successfully" });
+        const url = await deleteUrl(slug, req.user.id);
+        res.json(url);
     },
 );
 
