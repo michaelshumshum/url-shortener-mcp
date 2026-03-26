@@ -1,3 +1,10 @@
+## [1.1.4](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.1.3...v1.1.4) (2026-03-26)
+
+
+### Bug Fixes
+
+* dynamically size API key box to fit key length ([ddfb9af](https://github.com/michaelshumshum/url-shortener-mcp/commit/ddfb9af1c2d2142ab9d37cc22dade5d61e534f06))
+
 ## [1.1.3](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.1.2...v1.1.3) (2026-03-26)
 
 
