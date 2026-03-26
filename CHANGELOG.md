@@ -1,3 +1,10 @@
+## [1.1.5](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.1.4...v1.1.5) (2026-03-26)
+
+
+### Bug Fixes
+
+* resolve prisma binary via require.resolve for npx compatibility ([33656d0](https://github.com/michaelshumshum/url-shortener-mcp/commit/33656d0c55ae398da2b1580f99ee6a1854830244))
+
 ## [1.1.4](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.1.3...v1.1.4) (2026-03-26)
 
 
