@@ -1,3 +1,16 @@
+# [1.3.0](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.2.1...v1.3.0) (2026-03-26)
+
+
+### Bug Fixes
+
+* resolve package paths for npx compatibility ([3a994be](https://github.com/michaelshumshum/url-shortener-mcp/commit/3a994be96b5b3b808a90bee7902526c51fa15fcf))
+* update test setup to use libsql adapter ([1c40fba](https://github.com/michaelshumshum/url-shortener-mcp/commit/1c40fba2a0da5ef51d7b9394bbead367e0379efd))
+
+
+### Features
+
+* replace better-sqlite3 with libsql adapter ([9cde859](https://github.com/michaelshumshum/url-shortener-mcp/commit/9cde85981c4fbb49b6585b076921d8cacda6bbe6))
+
 ## [1.2.1](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.2.0...v1.2.1) (2026-03-26)
 
 
