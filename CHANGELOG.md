@@ -1,3 +1,15 @@
+# [1.2.0](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.1.6...v1.2.0) (2026-03-26)
+
+
+### Bug Fixes
+
+* initializing fix ([a17ac9d](https://github.com/michaelshumshum/url-shortener-mcp/commit/a17ac9d7c5e7c94af3ae17ee3fe1c3b492cdfa56))
+
+
+### Features
+
+* allow dispatching releases ([c9776dc](https://github.com/michaelshumshum/url-shortener-mcp/commit/c9776dcf9318e75ff76a7394c205b83fdca0adca))
+
 ## [1.1.6](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.1.5...v1.1.6) (2026-03-26)
 
 
