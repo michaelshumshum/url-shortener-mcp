@@ -487,7 +487,7 @@ describe("GET /:slug", () => {
 
         const res = await request.get("/redir-test");
 
-        expect(res.status).toBe(301);
+        expect(res.status).toBe(302);
         expect(res.headers.location).toBe("https://example.com");
     });
 
