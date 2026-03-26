@@ -23,9 +23,19 @@ process.on("uncaughtException", (error) => {
 
 // Auto-run migrations on startup
 const packageRoot = join(__dirname, "../..");
-const prismaBin = join(packageRoot, "node_modules", ".bin", "prisma");
+// Resolve the prisma CLI entry point via require.resolve so it works whether
+// prisma is a direct dependency or hoisted by npm/npx into a parent node_modules.
+const prismaBinJs = (() => {
+    try {
+        return require.resolve("prisma/dist/bin.js");
+    } catch {
+        // Fallback: resolve via package.json location
+        const pkgJson = require.resolve("prisma/package.json");
+        return join(pkgJson, "..", "dist", "bin.js");
+    }
+})();
 try {
-    execFileSync(prismaBin, ["migrate", "deploy"], {
+    execFileSync(process.execPath, [prismaBinJs, "migrate", "deploy"], {
         cwd: packageRoot,
         stdio: "inherit",
         env: process.env,
