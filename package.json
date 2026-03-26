@@ -4,9 +4,10 @@
     "description": "A URL shortener MCP server built with Express, Prisma, TypeScript, and SQLite",
     "main": "dist/src/index.js",
     "bin": {
-        "url-shortener-mcp": "dist/src/index.js"
+        "url-shortener-mcp": "bin/url-shortener-mcp.js"
     },
     "files": [
+        "bin/",
         "dist/",
         "generated/",
         "prisma/migrations/",
