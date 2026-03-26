@@ -360,6 +360,121 @@ describe("DELETE /urls", () => {
 });
 
 // ---------------------------------------------------------------------------
+// POST /urls/bulk
+// ---------------------------------------------------------------------------
+
+describe("POST /urls/bulk", () => {
+    it("shortens multiple URLs and returns 207", async () => {
+        const res = await request
+            .post("/urls/bulk")
+            .set("Authorization", auth1())
+            .send({
+                urls: [
+                    { longUrl: "https://alpha.com" },
+                    { longUrl: "https://beta.com" },
+                ],
+            });
+
+        expect(res.status).toBe(207);
+        expect(res.body).toHaveLength(2);
+        expect(res.body[0].success).toBe(true);
+        expect(res.body[0].data.longUrl).toBe("https://alpha.com");
+        expect(res.body[0].data.shortUrl).toMatch(/^http:\/\//);
+        expect(res.body[1].success).toBe(true);
+        expect(res.body[1].data.longUrl).toBe("https://beta.com");
+    });
+
+    it("supports custom slugs per item", async () => {
+        const res = await request
+            .post("/urls/bulk")
+            .set("Authorization", auth1())
+            .send({
+                urls: [
+                    { longUrl: "https://example.com", slug: "bulk-a" },
+                    { longUrl: "https://example.com", slug: "bulk-b" },
+                ],
+            });
+
+        expect(res.status).toBe(207);
+        expect(res.body[0].data.slug).toBe("bulk-a");
+        expect(res.body[1].data.slug).toBe("bulk-b");
+    });
+
+    it("supports ttl per item", async () => {
+        const res = await request
+            .post("/urls/bulk")
+            .set("Authorization", auth1())
+            .send({
+                urls: [{ longUrl: "https://example.com", ttl: 3600 }],
+            });
+
+        expect(res.status).toBe(207);
+        expect(res.body[0].data.expiresAt).toBeDefined();
+    });
+
+    it("returns per-item errors for partial failures without failing the whole batch", async () => {
+        await request
+            .post("/urls")
+            .set("Authorization", auth1())
+            .send({ longUrl: "https://example.com", slug: "taken-slug" });
+
+        const res = await request
+            .post("/urls/bulk")
+            .set("Authorization", auth1())
+            .send({
+                urls: [
+                    { longUrl: "https://good.com" },
+                    { longUrl: "https://bad.com", slug: "taken-slug" },
+                ],
+            });
+
+        expect(res.status).toBe(207);
+        expect(res.body[0].success).toBe(true);
+        expect(res.body[1].success).toBe(false);
+        expect(res.body[1].error).toBeDefined();
+    });
+
+    it("returns 400 when urls array is empty", async () => {
+        const res = await request
+            .post("/urls/bulk")
+            .set("Authorization", auth1())
+            .send({ urls: [] });
+
+        expect(res.status).toBe(400);
+    });
+
+    it("returns 400 when urls array exceeds 20 items", async () => {
+        const res = await request
+            .post("/urls/bulk")
+            .set("Authorization", auth1())
+            .send({
+                urls: Array.from({ length: 21 }, (_, i) => ({
+                    longUrl: `https://example.com/${i}`,
+                })),
+            });
+
+        expect(res.status).toBe(400);
+    });
+
+    it("returns 400 when an item has an invalid longUrl", async () => {
+        const res = await request
+            .post("/urls/bulk")
+            .set("Authorization", auth1())
+            .send({ urls: [{ longUrl: "not-a-url" }] });
+
+        expect(res.status).toBe(400);
+    });
+
+    it("returns 401 without auth", async () => {
+        const res = await request
+            .post("/urls/bulk")
+            .send({ urls: [{ longUrl: "https://example.com" }] });
+
+        expect(res.status).toBe(401);
+    });
+});
+
+// ---------------------------------------------------------------------------
 // GET /:slug (redirect)
 // ---------------------------------------------------------------------------
 

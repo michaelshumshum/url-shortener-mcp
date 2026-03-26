@@ -481,6 +481,61 @@ describe("delete_url", () => {
 });
 
 // ---------------------------------------------------------------------------
+// bulk_shorten_urls
+// ---------------------------------------------------------------------------
+
+describe("bulk_shorten_urls", () => {
+    let sessionId: string;
+
+    beforeAll(async () => {
+        sessionId = await createSession(apiKey);
+    });
+
+    afterAll(async () => {
+        await request
+            .delete("/mcp")
+            .set("Authorization", `Bearer ${apiKey}`)
+            .set("mcp-session-id", sessionId);
+    });
+
+    it("shortens multiple URLs and returns per-item results", async () => {
+        const results = await callToolJson<
+            { longUrl: string; success: boolean; data: { shortUrl: string } }[]
+        >(sessionId, apiKey, "bulk_shorten_urls", {
+            urls: [
+                { longUrl: "https://alpha.com" },
+                { longUrl: "https://beta.com" },
+            ],
+        });
+
+        expect(results).toHaveLength(2);
+        expect(results[0].success).toBe(true);
+        expect(results[0].data.shortUrl).toMatch(/^http:\/\//);
+        expect(results[1].success).toBe(true);
+    });
+
+    it("reports per-item failures for duplicate slugs without failing the batch", async () => {
+        await callTool(sessionId, apiKey, "shorten_url", {
+            longUrl: "https://example.com",
+            slug: "bulk-mcp-taken",
+        });
+
+        const results = await callToolJson<
+            { success: boolean; error?: string }[]
+        >(sessionId, apiKey, "bulk_shorten_urls", {
+            urls: [
+                { longUrl: "https://good.com" },
+                { longUrl: "https://bad.com", slug: "bulk-mcp-taken" },
+            ],
+        });
+
+        expect(results[0].success).toBe(true);
+        expect(results[1].success).toBe(false);
+        expect(results[1].error).toBeDefined();
+    });
+});
+
+// ---------------------------------------------------------------------------
 // delete_all_urls
 // ---------------------------------------------------------------------------
 
