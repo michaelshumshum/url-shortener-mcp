@@ -25,6 +25,10 @@ export const createUrlSchema = z
         { message: "expiresAt must be in the future" },
     );
 
+export const bulkCreateUrlSchema = z.object({
+    urls: z.array(createUrlSchema).min(1).max(20),
+});
+
 export const listUrlsSchema = z.object({
     orderBy: z.enum(["createdAt", "expiresAt", "clicks"]).optional(),
     order: z.enum(["asc", "desc"]).optional(),

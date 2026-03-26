@@ -1,5 +1,6 @@
 import { type IRouter, type Request, type Response, Router } from "express";
 import {
+    bulkCreateUrlSchema,
     createUrlSchema,
     listUrlsSchema,
     slugParamSchema,
@@ -47,6 +48,45 @@ urlRouter.post("/", validateBody(createUrlSchema), async (req, res) => {
     });
 
     res.status(201).json(url);
+});
+
+// POST /urls/bulk — shorten multiple URLs at once (owner only)
+urlRouter.post("/bulk", validateBody(bulkCreateUrlSchema), async (req, res) => {
+    const { urls } = req.body as {
+        urls: {
+            longUrl: string;
+            ttl?: number;
+            expiresAt?: string;
+            slug?: string;
+        }[];
+    };
+
+    const results = await Promise.allSettled(
+        urls.map((input) =>
+            createUrl({
+                ...input,
+                userId: req.user.id,
+                expiresAt: input.expiresAt
+                    ? new Date(input.expiresAt)
+                    : undefined,
+            }),
+        ),
+    );
+
+    const output = results.map((result, i) => {
+        const longUrl = urls[i]?.longUrl ?? "";
+        if (result.status === "fulfilled") {
+            return { longUrl, success: true, data: result.value };
+        }
+        const err = result.reason;
+        return {
+            longUrl,
+            success: false,
+            error: err instanceof Error ? err.message : "Unknown error",
+        };
+    });
+
+    res.status(207).json(output);
 });
 
 // GET /urls/:slug — get a single URL record (owner only)

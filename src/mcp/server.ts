@@ -215,6 +215,53 @@ function createMcpServer(userId: string): McpServer {
     );
 
     server.registerTool(
+        "bulk_shorten_urls",
+        {
+            description:
+                "Shorten multiple URLs in a single call (max 20). Returns per-URL results including any errors.",
+            inputSchema: {
+                urls: z
+                    .array(z.object(createUrlSchema.shape))
+                    .min(1)
+                    .max(20)
+                    .describe("List of URLs to shorten"),
+            },
+        },
+        async ({ urls }) => {
+            const results = await Promise.allSettled(
+                urls.map((input) =>
+                    createUrl({
+                        ...input,
+                        userId,
+                        expiresAt: input.expiresAt
+                            ? new Date(input.expiresAt)
+                            : undefined,
+                    }),
+                ),
+            );
+
+            const output = results.map((result, i) => {
+                const longUrl = urls[i]?.longUrl ?? "";
+                if (result.status === "fulfilled") {
+                    return { longUrl, success: true, data: result.value };
+                }
+                const err = result.reason;
+                return {
+                    longUrl,
+                    success: false,
+                    error: err instanceof Error ? err.message : "Unknown error",
+                };
+            });
+
+            return {
+                content: [
+                    { type: "text", text: JSON.stringify(output, null, 2) },
+                ],
+            };
+        },
+    );
+
+    server.registerTool(
         "get_url",
         {
             description:
