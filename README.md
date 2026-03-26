@@ -136,6 +136,7 @@ Replace `https://your-domain.com` with the public URL of your deployed server.
 | Tool | Description |
 |------|-------------|
 | `shorten_url` | Create a shortened URL with optional TTL, expiry date, or custom slug. When no slug is provided and the client supports [sampling](#sampling), the connected LLM will suggest one. |
+| `bulk_shorten_urls` | Shorten up to 20 URLs in a single call. Returns per-item results so partial failures don't block the rest. |
 | `get_url` | Get details and click count for a URL you own |
 | `list_urls` | List all your shortened URLs |
 | `delete_url` | Delete a shortened URL by slug |
@@ -193,7 +194,17 @@ You can also read your URLs as resources:
 
 ## REST API
 
-The server also exposes a traditional REST API under `/urls` using the same Bearer token auth, and redirects short URLs at `/:slug`.
+The server exposes a REST API under `/urls` using the same Bearer token auth. Short URLs resolve via public redirects at `/:slug`.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/urls` | List all your shortened URLs. Supports `orderBy` (`createdAt`, `expiresAt`, `clicks`) and `order` (`asc`, `desc`) query params. |
+| `POST` | `/urls` | Create a shortened URL. Body: `{ longUrl, slug?, ttl?, expiresAt? }` |
+| `POST` | `/urls/bulk` | Shorten up to 20 URLs in one request. Body: `{ urls: [...] }`. Returns **207** with a per-item `{ longUrl, success, data \| error }` array — partial failures don't abort the batch. |
+| `GET` | `/urls/:slug` | Get details for a URL you own |
+| `DELETE` | `/urls/:slug` | Delete a URL you own |
+| `DELETE` | `/urls` | Delete all your URLs |
+| `GET` | `/:slug` | Redirect to the original URL (public, increments click count) |
 
 ## Development
 
