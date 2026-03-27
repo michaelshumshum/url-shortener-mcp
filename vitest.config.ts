@@ -6,5 +6,9 @@ export default defineConfig({
         environment: "node",
         setupFiles: ["./tests/setup.ts"],
         fileParallelism: false,
+        coverage: {
+            provider: "istanbul",
+            reporter: ["json-summary"],
+        },
     },
 });

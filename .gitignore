@@ -19,6 +19,9 @@ build/
 # Prisma generated client
 /generated/
 
+# Test coverage
+coverage/
+
 # SQLite databases
 *.db
 *.db-journal
