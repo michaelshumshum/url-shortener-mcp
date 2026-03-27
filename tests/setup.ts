@@ -1,6 +1,7 @@
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 import "dotenv/config";
 import { execSync } from "node:child_process";
+import { existsSync, rmSync } from "node:fs";
 import path from "node:path";
 import { afterAll, beforeAll } from "vitest";
 import { PrismaClient } from "../generated/prisma/client";
@@ -29,6 +30,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
     await prisma.$disconnect();
+    if (existsSync(testDbPath)) rmSync(testDbPath);
 });
 
 export { prisma };
