@@ -10,6 +10,12 @@ export const env = createEnv({
         DATABASE_URL: z.string().min(1).default("file:./prisma/dev.db"),
         EXPIRY_JOB_CRON: z.string().min(1).default("* * * * *"),
         MAX_EXPIRY_SECONDS: z.coerce.number().int().positive().default(86400),
+        INACTIVE_USER_CUTOFF_SECONDS: z.coerce
+            .number()
+            .int()
+            .positive()
+            .default(604800), // 1 week
+        INACTIVE_USER_JOB_CRON: z.string().min(1).default("0 * * * *"), // hourly
         HOSTNAME: z.string().default("localhost:3000"),
         HTTPS: z.coerce.boolean().default(false),
         ENABLE_API: z.coerce.boolean().default(true),

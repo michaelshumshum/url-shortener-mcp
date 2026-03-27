@@ -97,6 +97,24 @@ function isExpired(url: Url): boolean {
 }
 
 /**
+ *
+ */
+function updateUserActivity(userId: string): void {
+    prisma.user
+        .update({
+            where: { id: userId },
+            data: { lastActivity: new Date() },
+        })
+        .then()
+        .catch((error) => {
+            console.error(
+                `Failed to update lastActivity for user ${userId}:`,
+                error,
+            );
+        });
+}
+
+/**
  * Creates a new shortened URL with optional expiry
  * @param input - The URL creation parameters
  * @returns The created URL record
@@ -117,6 +135,8 @@ export async function createUrl(
             expiresAt,
         },
     });
+
+    updateUserActivity(input.userId);
 
     return {
         ...url,
@@ -223,8 +243,6 @@ export async function deleteUrl(
     if (!url) throw new NotFoundError();
     if (url.userId !== userId) throw new ForbiddenError();
 
-    await prisma.url.delete({ where: { slug } });
-
     return { ...url, shortUrl: shortUrl(url) };
 }
 
@@ -241,4 +259,26 @@ export async function deleteExpiredUrls(): Promise<number> {
         },
     });
     return result.count;
+}
+
+/**
+ * Deletes users who haven't created any URLs recently
+ * @returns The number of deleted users
+ */
+export async function deleteInactiveUsers(): Promise<number> {
+    deleteExpiredUrls();
+    const cutoff = new Date(
+        Date.now() - env.INACTIVE_USER_CUTOFF_SECONDS * 1000,
+    );
+    const deletedUsers = await prisma.user.deleteMany({
+        where: {
+            lastActivity: {
+                lt: cutoff,
+            },
+            urls: {
+                none: {},
+            },
+        },
+    });
+    return deletedUsers.count;
 }
