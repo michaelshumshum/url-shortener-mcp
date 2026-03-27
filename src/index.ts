@@ -6,7 +6,7 @@ import { randomBytes } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
 import { app } from "./app";
-import { startExpiryJob } from "./jobs/expiry.job";
+import { startAllJobs } from "./jobs";
 import { generateSalt, hashKey } from "./lib/crypto";
 import { env } from "./lib/env";
 import { logger } from "./lib/logger";
@@ -87,7 +87,7 @@ async function main() {
         );
     }
 
-    startExpiryJob();
+    startAllJobs();
 
     app.listen(env.PORT, () => {
         logger.info(`[server] listening on port ${env.PORT}`);
