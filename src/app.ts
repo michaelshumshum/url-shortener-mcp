@@ -6,6 +6,7 @@ import { handleRedirect, urlRouter } from "./api/server";
 import { env } from "./lib/env";
 import { logger } from "./lib/logger";
 import { prisma } from "./lib/prisma";
+import { Routes } from "./lib/routes";
 import { mcpRouter } from "./mcp/server";
 import { authMiddleware } from "./middleware/auth";
 import { errorHandler } from "./middleware/error";
@@ -58,7 +59,7 @@ if (env.ENABLE_API) {
 }
 if (env.ENABLE_MCP) {
     app.use(
-        "/mcp",
+        Routes.MCP,
         mcpLimiter,
         authMiddleware,
         mcpLoggingMiddleware,

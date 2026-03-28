@@ -1,11 +1,11 @@
 import { type IRouter, type Request, type Response, Router } from "express";
+import { Routes, resolveRelativeRoute } from "../lib/routes";
 import {
     bulkCreateUrlSchema,
     createUrlSchema,
     listUrlsSchema,
     slugParamSchema,
 } from "../lib/schemas";
-
 import {
     validateBody,
     validateParams,
@@ -53,7 +53,7 @@ urlRouter.post("/", validateBody(createUrlSchema), async (req, res) => {
 
 // POST /urls/bulk — shorten multiple URLs at once (owner only)
 urlRouter.post(
-    "/urls/bulk",
+    resolveRelativeRoute(Routes.URLS, Routes.URLS_BULK),
     validateBody(bulkCreateUrlSchema),
     async (req, res) => {
         const { urls } = req.body as {
