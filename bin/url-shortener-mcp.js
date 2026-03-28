@@ -13,6 +13,7 @@ const flagMap = {
     "--enable-api": "ENABLE_API",
     "--enable-mcp": "ENABLE_MCP",
     "--max-expiry-seconds": "MAX_EXPIRY_SECONDS",
+    "--inactive-user-cutoff": "INACTIVE_USER_CUTOFF_SECONDS",
 };
 
 for (let i = 0; i < argv.length; i++) {
