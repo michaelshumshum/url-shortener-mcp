@@ -2,6 +2,7 @@ import "express-async-errors";
 import express, { type Express } from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
+import { handleRedirect, urlRouter } from "./api/server";
 import { env } from "./lib/env";
 import { logger } from "./lib/logger";
 import { prisma } from "./lib/prisma";
@@ -12,7 +13,6 @@ import {
     apiLoggingMiddleware,
     mcpLoggingMiddleware,
 } from "./middleware/logging";
-import { handleRedirect, urlRouter } from "./routes/url.router";
 
 export const app: Express = express();
 
