@@ -1,9 +1,8 @@
 import "dotenv/config";
-import { randomBytes } from "node:crypto";
 import path from "node:path";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 import { PrismaClient } from "../generated/prisma/client";
-import { generateSalt, hashKey } from "../src/lib/crypto";
+import { createUser } from "../src/services/user";
 
 const dbUrl = process.env.DATABASE_URL ?? "file:./prisma/dev.db";
 const dbPath = dbUrl.replace(/^file:/, "");
@@ -13,21 +12,12 @@ const adapter = new PrismaLibSql({ url: resolvedPath });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-    const rawKey = randomBytes(32).toString("hex");
-    const salt = generateSalt();
-    const hashedKey = hashKey(rawKey, salt);
-
-    const user = await prisma.user.create({
-        data: {
-            key: hashedKey,
-            salt,
-        },
-    });
+    const { user, key } = await createUser();
 
     console.log("User created successfully.");
     console.log("");
     console.log(`  ID:  ${user.id}`);
-    console.log(`  Key: ${rawKey}`);
+    console.log(`  Key: ${key}`);
     console.log("");
     console.log("Store this key securely — it will not be shown again.");
 }

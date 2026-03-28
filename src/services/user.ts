@@ -1,5 +1,30 @@
+import { randomBytes } from "node:crypto";
+import type { User } from "../../generated/prisma/client";
+import { generateSalt, hashKey } from "../lib/crypto";
 import { env } from "../lib/env";
 import { prisma } from "../lib/prisma";
+
+/**
+ * Creates a new user with a unique API key.
+ * @returns newly created `User` and its key
+ */
+export async function createUser(): Promise<{
+    user: User;
+    key: string;
+}> {
+    const rawKey = randomBytes(32).toString("hex");
+    const salt = generateSalt();
+    const hashedKey = hashKey(rawKey, salt);
+
+    const user = await prisma.user.create({
+        data: {
+            key: hashedKey,
+            salt,
+        },
+    });
+
+    return { user, key: rawKey };
+}
 
 /**
  * Deletes users who haven't created any URLs recently
