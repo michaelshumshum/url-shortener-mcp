@@ -1,7 +1,7 @@
 import { schedule } from "node-cron";
 import { env } from "../lib/env";
 import { logger } from "../lib/logger";
-import { deleteInactiveUsers } from "../services/url";
+import { deleteInactiveUsers } from "../services/user";
 
 export function startInactiveUsersJob(): void {
     schedule(env.INACTIVE_USER_JOB_CRON, async () => {
