@@ -6,7 +6,7 @@ import {
 } from "../lib/errors";
 import { prisma } from "../lib/prisma";
 import { isExpired, resolveExpiry } from "./expiry";
-import { ensureUniqueSlug, shortUrl } from "./slug";
+import { generateSlug, shortUrl, validateSlug } from "./slug";
 import { updateUserActivity } from "./user";
 
 export { ExpiryTooLargeError, ForbiddenError, NotFoundError };
@@ -29,7 +29,8 @@ export type CreateUrlInput = {
 export async function createUrl(
     input: CreateUrlInput,
 ): Promise<Url & { shortUrl: string }> {
-    const slug = await ensureUniqueSlug(input.slug);
+    const slug = input.slug !== undefined ? input.slug : generateSlug();
+    await validateSlug(slug);
     const expiresAt = resolveExpiry(input);
 
     const url = await prisma.url.create({
