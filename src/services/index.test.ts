@@ -11,12 +11,12 @@ import {
     createUrl,
     deleteAllUrls,
     deleteExpiredUrls,
-    deleteInactiveUsers,
     deleteUrl,
     getUrl,
     listUrls,
     resolveUrl,
 } from "./url";
+import { deleteInactiveUsers } from "./user";
 
 // ---------------------------------------------------------------------------
 // Helpers
