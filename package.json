@@ -7,7 +7,7 @@
         "url-shortener-mcp": "bin/url-shortener-mcp.js"
     },
     "scripts": {
-        "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
+        "dev": "nodemon --exec 'ts-node' src/index.ts",
         "build": "tsc",
         "start": "node dist/src/index.js",
         "check": "biome check --write",

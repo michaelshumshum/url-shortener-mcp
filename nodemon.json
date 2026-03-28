@@ -1,0 +1,5 @@
+{
+    "$schema": "https://json.schemastore.org/nodemon.json",
+    "watch": ["src", ".env", "prisma", "generated"],
+    "ignore": ["*.test.*", "*.json", "dist", "node_modules"]
+}
