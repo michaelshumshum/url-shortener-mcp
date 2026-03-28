@@ -1,11 +1,12 @@
 import { randomBytes } from "node:crypto";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "../../tests/setup";
 import { generateSalt, hashKey } from "../lib/crypto";
 import {
     AlreadyExistsError,
     ForbiddenError,
     NotFoundError,
+    ValidationError,
 } from "../lib/errors";
 import {
     createUrl,
@@ -49,15 +50,17 @@ const PAST = new Date(Date.now() - 1000);
 describe("createUrl", () => {
     let userId: string;
 
-    afterEach(async () => {
+    beforeAll(async () => {
+        const user = await createUser();
+        userId = user.id;
+    });
+
+    afterAll(async () => {
         await prisma.url.deleteMany({ where: { userId } });
         await prisma.user.deleteMany({ where: { id: userId } });
     });
 
     it("creates a URL and returns it with a shortUrl", async () => {
-        const user = await createUser();
-        userId = user.id;
-
         const result = await createUrl({
             longUrl: "https://example.com",
             userId,
@@ -70,8 +73,6 @@ describe("createUrl", () => {
     });
 
     it("uses a custom slug when provided", async () => {
-        const user = await createUser();
-        userId = user.id;
         const slug = randomSlug();
 
         const result = await createUrl({
@@ -83,9 +84,29 @@ describe("createUrl", () => {
         expect(result.slug).toBe(slug);
     });
 
+    it("throws ValidationError for an empty slug", async () => {
+        await expect(
+            createUrl({ longUrl: "https://example.com", userId, slug: "" }),
+        ).rejects.toThrow(ValidationError);
+    });
+
+    it("throws ValidationError for a reserved slug", async () => {
+        await expect(
+            createUrl({ longUrl: "https://example.com", userId, slug: "mcp" }),
+        ).rejects.toThrow(ValidationError);
+    });
+
+    it("throws ValidationError for an invalid slug", async () => {
+        await expect(
+            createUrl({
+                longUrl: "https://example.com",
+                userId,
+                slug: "invalid slug//",
+            }),
+        ).rejects.toThrow(ValidationError);
+    });
+
     it("throws AlreadyExistsError for a duplicate slug", async () => {
-        const user = await createUser();
-        userId = user.id;
         const slug = randomSlug();
 
         await createUrl({ longUrl: "https://example.com", userId, slug });
@@ -96,9 +117,6 @@ describe("createUrl", () => {
     });
 
     it("sets expiresAt from ttl", async () => {
-        const user = await createUser();
-        userId = user.id;
-
         const before = Date.now();
         const result = await createUrl({
             longUrl: "https://example.com",
