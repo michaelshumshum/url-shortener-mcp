@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { randomBytes } from "node:crypto";
 import path from "node:path";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaLibSql } from "@prisma/adapter-libsql";
 import { PrismaClient } from "../generated/prisma/client";
 import { generateSalt, hashKey } from "../src/lib/crypto";
 
@@ -9,7 +9,7 @@ const dbUrl = process.env.DATABASE_URL ?? "file:./prisma/dev.db";
 const dbPath = dbUrl.replace(/^file:/, "");
 const resolvedPath = path.resolve(process.cwd(), dbPath);
 
-const adapter = new PrismaBetterSqlite3({ url: resolvedPath });
+const adapter = new PrismaLibSql({ url: resolvedPath });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
