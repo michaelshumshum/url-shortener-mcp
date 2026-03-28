@@ -27,6 +27,7 @@ npx url-shortener-mcp --port 3000 --hostname your-domain.com --https true
 ```
 
 On first run the server will:
+
 1. Create a fresh SQLite database and apply all migrations automatically
 2. Generate an API key and print it once — **save it, it will not be shown again**
 3. Start listening
@@ -43,15 +44,16 @@ npx url-shortener-mcp \
   --enable-mcp true
 ```
 
-| Flag | Env var |
-|------|---------|
-| `--port` / `-p` | `PORT` |
-| `--database-url` | `DATABASE_URL` |
-| `--hostname` | `HOSTNAME` |
-| `--https` | `HTTPS` |
-| `--enable-api` | `ENABLE_API` |
-| `--enable-mcp` | `ENABLE_MCP` |
+| Flag                   | Env var              |
+| ---------------------- | -------------------- |
+| `--port` / `-p`        | `PORT`               |
+| `--database-url`       | `DATABASE_URL`       |
+| `--hostname`           | `HOSTNAME`           |
+| `--https`              | `HTTPS`              |
+| `--enable-api`         | `ENABLE_API`         |
+| `--enable-mcp`         | `ENABLE_MCP`         |
 | `--max-expiry-seconds` | `MAX_EXPIRY_SECONDS` |
+| `--expiry-job-cron`    | `EXPIRY_JOB_CRON`    |
 
 Flags take precedence over values set in a `.env` file.
 
@@ -135,26 +137,26 @@ Replace `https://your-domain.com` with the public URL of your deployed server.
 
 ### Tools
 
-| Tool | Description |
-|------|-------------|
-| `shorten_url` | Create a shortened URL with optional TTL, expiry date, or custom slug. When no slug is provided and the client supports [sampling](#sampling), the connected LLM will suggest one. |
-| `bulk_shorten_urls` | Shorten up to 20 URLs in a single call. Returns per-item results so partial failures don't block the rest. |
-| `get_url` | Get details and click count for a URL you own |
-| `list_urls` | List all your shortened URLs |
-| `delete_url` | Delete a shortened URL by slug |
-| `delete_all_urls` | Delete all your shortened URLs |
+| Tool                | Description                                                                                                                                                                        |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `shorten_url`       | Create a shortened URL with optional TTL, expiry date, or custom slug. When no slug is provided and the client supports [sampling](#sampling), the connected LLM will suggest one. |
+| `bulk_shorten_urls` | Shorten up to 20 URLs in a single call. Returns per-item results so partial failures don't block the rest.                                                                         |
+| `get_url`           | Get details and click count for a URL you own                                                                                                                                      |
+| `list_urls`         | List all your shortened URLs                                                                                                                                                       |
+| `delete_url`        | Delete a shortened URL by slug                                                                                                                                                     |
+| `delete_all_urls`   | Delete all your shortened URLs                                                                                                                                                     |
 
 ### Resources
 
-| URI | Description |
-|-----|-------------|
-| `urls://all` | All your shortened URLs as JSON |
-| `urls://{slug}` | A single shortened URL by slug |
+| URI             | Description                     |
+| --------------- | ------------------------------- |
+| `urls://all`    | All your shortened URLs as JSON |
+| `urls://{slug}` | A single shortened URL by slug  |
 
 ### Prompts
 
-| Prompt | Args | Description |
-|--------|------|-------------|
+| Prompt            | Args      | Description                                                                                                                                                                                |
+| ----------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `suggest_shorten` | `longUrl` | Injects a user+assistant message pair into the conversation suggesting the user shorten the given URL. Designed to be invoked automatically by clients when a long URL appears in context. |
 
 ### Sampling
@@ -163,16 +165,18 @@ When a client supports the [MCP sampling](https://modelcontextprotocol.io/docs/c
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PORT` | `3000` | Server port |
-| `DATABASE_URL` | `file:./prisma/dev.db` | SQLite database path |
-| `HOSTNAME` | `localhost:3000` | Hostname used when building short URLs |
-| `HTTPS` | `false` | Use `https://` scheme in short URLs |
-| `MAX_EXPIRY_SECONDS` | `86400` | Maximum allowed TTL (default: 24 hours) |
-| `EXPIRY_JOB_CRON` | `* * * * *` | Cron schedule for cleaning up expired URLs |
-| `ENABLE_API` | `true` | Enable the REST API (`/urls`) |
-| `ENABLE_MCP` | `true` | Enable the MCP server (`/mcp`) |
+| Variable                       | Default                | Description                                                            |
+| ------------------------------ | ---------------------- | ---------------------------------------------------------------------- |
+| `PORT`                         | `3000`                 | Server port                                                            |
+| `DATABASE_URL`                 | `file:./prisma/dev.db` | SQLite database path                                                   |
+| `HOSTNAME`                     | `localhost:3000`       | Hostname used when building short URLs                                 |
+| `HTTPS`                        | `false`                | Use `https://` scheme in short URLs                                    |
+| `MAX_EXPIRY_SECONDS`           | `86400`                | Maximum allowed TTL (default: 24 hours)                                |
+| `EXPIRY_JOB_CRON`              | `* * * * *`            | Cron schedule for cleaning up expired URLs                             |
+| `INACTIVE_USER_CUTOFF_SECONDS` | `86400`                | Automatically delete users inactive longer than this (default: 1 week) |
+| `INACTIVE_USER_JOB_CRON`       | `0 * * * *`            | Cron schedule for cleaning up inactive users (default: hourly)         |
+| `ENABLE_API`                   | `true`                 | Enable the REST API (`/urls`)                                          |
+| `ENABLE_MCP`                   | `true`                 | Enable the MCP server (`/mcp`)                                         |
 
 ## Example Use Cases
 
@@ -198,15 +202,15 @@ You can also read your URLs as resources:
 
 The server exposes a REST API under `/urls` using the same Bearer token auth. Short URLs resolve via public redirects at `/:slug`.
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/urls` | List all your shortened URLs. Supports `orderBy` (`createdAt`, `expiresAt`, `clicks`) and `order` (`asc`, `desc`) query params. |
-| `POST` | `/urls` | Create a shortened URL. Body: `{ longUrl, slug?, ttl?, expiresAt? }` |
-| `POST` | `/urls/bulk` | Shorten up to 20 URLs in one request. Body: `{ urls: [...] }`. Returns **207** with a per-item `{ longUrl, success, data \| error }` array — partial failures don't abort the batch. |
-| `GET` | `/urls/:slug` | Get details for a URL you own |
-| `DELETE` | `/urls/:slug` | Delete a URL you own |
-| `DELETE` | `/urls` | Delete all your URLs |
-| `GET` | `/:slug` | Redirect to the original URL (public, increments click count) |
+| Method   | Path          | Description                                                                                                                                                                          |
+| -------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET`    | `/urls`       | List all your shortened URLs. Supports `orderBy` (`createdAt`, `expiresAt`, `clicks`) and `order` (`asc`, `desc`) query params.                                                      |
+| `POST`   | `/urls`       | Create a shortened URL. Body: `{ longUrl, slug?, ttl?, expiresAt? }`                                                                                                                 |
+| `POST`   | `/urls/bulk`  | Shorten up to 20 URLs in one request. Body: `{ urls: [...] }`. Returns **207** with a per-item `{ longUrl, success, data \| error }` array — partial failures don't abort the batch. |
+| `GET`    | `/urls/:slug` | Get details for a URL you own                                                                                                                                                        |
+| `DELETE` | `/urls/:slug` | Delete a URL you own                                                                                                                                                                 |
+| `DELETE` | `/urls`       | Delete all your URLs                                                                                                                                                                 |
+| `GET`    | `/:slug`      | Redirect to the original URL (public, increments click count)                                                                                                                        |
 
 ## Development
 
