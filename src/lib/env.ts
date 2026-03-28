@@ -17,9 +17,20 @@ export const env = createEnv({
             .default(604800), // 1 week
         INACTIVE_USER_JOB_CRON: z.string().min(1).default("0 * * * *"), // hourly
         HOSTNAME: z.string().default("localhost:3000"),
-        HTTPS: z.coerce.boolean().default(false),
-        ENABLE_API: z.coerce.boolean().default(true),
-        ENABLE_MCP: z.coerce.boolean().default(true),
+        HTTPS: z
+            .enum(["true", "false"])
+            .transform((v) => v === "true")
+            .default(false),
+        ENABLE_API: z
+            .enum(["true", "false", ""])
+            .transform((v) => v === "true")
+            .default(true),
+        ENABLE_MCP: z
+            .enum(["true", "false"])
+            .transform((v) => v === "true")
+            .default(true),
     },
     runtimeEnv: process.env,
 });
+
+console.log(env.HTTPS, !!process.env.HTTPS);
