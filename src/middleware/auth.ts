@@ -5,10 +5,7 @@ import { logger } from "../lib/logger";
 import { prisma } from "../lib/prisma";
 
 // In-memory cache for users to avoid loading all users on every request
-const USERS_CACHE = new Map<
-    string,
-    { id: string; salt: string; key: string }
->();
+const USERS_CACHE = new Map<string, User>();
 let lastCacheUpdate = 0;
 const CACHE_TTL = 60000; // 1 minute
 
