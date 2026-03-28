@@ -21,7 +21,7 @@ beforeAll(async () => {
     // Run migrations on test database
     try {
         execSync("pnpm prisma migrate deploy", {
-            env: { ...process.env, DATABASE_URL: `file:${testDbPath}` },
+            env: { ...process.env },
             stdio: "inherit",
         });
     } catch (err) {
