@@ -1,3 +1,24 @@
+# [1.4.0](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.3.0...v1.4.0) (2026-03-28)
+
+
+### Bug Fixes
+
+* add type checking to scripts ([cbbe6f1](https://github.com/michaelshumshum/url-shortener-mcp/commit/cbbe6f11a50449a42a2aec245880033e7ed2fb94))
+* correct service import ([30346cf](https://github.com/michaelshumshum/url-shortener-mcp/commit/30346cf57bd5962ae050458aad5efc60185fa60c))
+* env boolean parsing ([7221982](https://github.com/michaelshumshum/url-shortener-mcp/commit/72219824aa6dedf12c1e27803020baa21535aa02))
+* **release:** update release commit message formatting ([aba60e3](https://github.com/michaelshumshum/url-shortener-mcp/commit/aba60e39032b0123454ef89e63c48cb81adda1de))
+* remove env console log ([71fee70](https://github.com/michaelshumshum/url-shortener-mcp/commit/71fee70de08ed3cd2bd5edba9ec81808c8ab5d6a))
+* template strng release config ([c17116b](https://github.com/michaelshumshum/url-shortener-mcp/commit/c17116b6c7f7d41f865cbc8d8f5dae67af579922))
+* update create-user script ([fafcbde](https://github.com/michaelshumshum/url-shortener-mcp/commit/fafcbdec98128a1dea244b28ec92ae8c61bfc41e))
+* user User type in auth middleware ([d1ce900](https://github.com/michaelshumshum/url-shortener-mcp/commit/d1ce900f265983643cf4cc61923c70e3a9007525))
+
+
+### Features
+
+* **bin:** add --inactive-user-cutoff flag to flagMap ([734b50c](https://github.com/michaelshumshum/url-shortener-mcp/commit/734b50c36aea21f89202b6f2a0fb4232f6d4f24c))
+* delete inactive users ([dcb4bb0](https://github.com/michaelshumshum/url-shortener-mcp/commit/dcb4bb04e6475ff79d4f66f9e21c708b7d5bcfb2))
+* start all jobs ([05b5765](https://github.com/michaelshumshum/url-shortener-mcp/commit/05b5765527aa6d21d640e1e60477c14aa6f3436f))
+
 # [1.3.0](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.2.1...v1.3.0) (2026-03-26)
 
 
