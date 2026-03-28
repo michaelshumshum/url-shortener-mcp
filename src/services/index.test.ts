@@ -16,7 +16,7 @@ import {
     getUrl,
     listUrls,
     resolveUrl,
-} from "./url.service";
+} from "./url";
 
 // ---------------------------------------------------------------------------
 // Helpers

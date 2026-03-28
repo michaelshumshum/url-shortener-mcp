@@ -17,7 +17,7 @@ import {
     getUrl,
     listUrls,
     resolveUrl,
-} from "../services/url.service";
+} from "../services/url";
 
 export const urlRouter: IRouter = Router();
 

@@ -1,7 +1,7 @@
 import { schedule } from "node-cron";
 import { env } from "../lib/env";
 import { logger } from "../lib/logger";
-import { deleteExpiredUrls } from "../services/url.service";
+import { deleteExpiredUrls } from "../services/url";
 
 export function startExpiryJob(): void {
     schedule(env.EXPIRY_JOB_CRON, async () => {

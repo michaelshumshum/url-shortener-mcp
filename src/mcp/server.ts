@@ -21,7 +21,7 @@ import {
     deleteUrl,
     getUrl,
     listUrls,
-} from "../services/url.service";
+} from "../services/url";
 
 export const mcpRouter: Router = Router();
 
