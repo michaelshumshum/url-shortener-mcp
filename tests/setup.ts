@@ -9,6 +9,11 @@ import { PrismaClient } from "../generated/prisma/client";
 // Set test database URL before anything else
 const testDbPath = path.resolve(process.cwd(), "tests/test.db");
 process.env.DATABASE_URL = `file:${testDbPath}`;
+process.env.NODE_ENV = "test";
+process.env.HTTPS = "false";
+process.env.HOSTNAME = "url-shortener-mcp-test.com";
+process.env.ENABLE_API = "true";
+process.env.ENABLE_MCP = "true";
 
 let prisma: PrismaClient;
 
