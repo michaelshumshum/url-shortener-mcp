@@ -8,7 +8,7 @@
     },
     "scripts": {
         "dev": "nodemon --exec 'ts-node' src/index.ts",
-        "build": "tsc",
+        "build": "tsc && find dist -name '*.js' -type f -exec sh -c 'terser \"$1\" -c -m -o \"$1\"' _ {} \\;",
         "start": "node dist/src/index.js",
         "check": "biome check --write",
         "format": "biome format --write",
@@ -72,6 +72,7 @@
         "@vitest/coverage-istanbul": "4.1.1",
         "@vitest/coverage-v8": "^4.1.1",
         "@vitest/ui": "^4.1.1",
+        "terser": "^5.20.0",
         "lefthook": "^2.1.4",
         "nodemon": "^3.1.14",
         "nyc": "^18.0.0",
