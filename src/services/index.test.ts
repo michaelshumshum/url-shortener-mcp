@@ -390,7 +390,7 @@ describe("deleteUrl", () => {
         userId = userId2 = undefined!;
     });
 
-    it("returns the deleted URL record", async () => {
+    it("deletes the URL record", async () => {
         const user = await createUser();
         userId = user.id;
         const slug = randomSlug();
@@ -403,10 +403,10 @@ describe("deleteUrl", () => {
             },
         });
 
-        const result = await deleteUrl(slug, userId);
+        await deleteUrl(slug, userId);
 
-        expect(result.slug).toBe(slug);
-        expect(result.shortUrl).toMatch(/^https?:\/\//);
+        const record = await prisma.url.findUnique({ where: { slug } });
+        expect(record).toBeNull();
     });
 
     it("throws NotFoundError for an unknown slug", async () => {

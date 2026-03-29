@@ -117,8 +117,8 @@ urlRouter.delete(
     validateParams(slugParamSchema),
     async (req: Request, res: Response) => {
         const { slug } = req.params as { slug: string };
-        const url = await deleteUrl(slug, req.user.id);
-        res.json(url);
+        await deleteUrl(slug, req.user.id);
+        res.status(204).end();
     },
 );
 

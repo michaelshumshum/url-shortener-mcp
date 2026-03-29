@@ -283,7 +283,7 @@ describe("GET /urls/:slug", () => {
 // ---------------------------------------------------------------------------
 
 describe("DELETE /urls/:slug", () => {
-    it("deletes a URL and returns it", async () => {
+    it("deletes a URL and returns 204", async () => {
         await request
             .post("/urls")
             .set("Authorization", auth1())
@@ -293,9 +293,7 @@ describe("DELETE /urls/:slug", () => {
             .delete("/urls/del-test")
             .set("Authorization", auth1());
 
-        expect(res.status).toBe(200);
-        expect(res.body.slug).toBe("del-test");
-        expect(res.body.longUrl).toBe("https://example.com");
+        expect(res.status).toBe(204);
     });
 
     it("returns 404 for an unknown slug", async () => {

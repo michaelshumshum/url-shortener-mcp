@@ -327,12 +327,12 @@ function createMcpServer(userId: string): McpServer {
         },
         async ({ slug }) => {
             try {
-                const url = await deleteUrl(slug, userId);
+                await deleteUrl(slug, userId);
                 return {
                     content: [
                         {
                             type: "text",
-                            text: `Deleted successfully.\n${JSON.stringify(url, null, 2)}`,
+                            text: `Deleted successfully.`,
                         },
                     ],
                 };
