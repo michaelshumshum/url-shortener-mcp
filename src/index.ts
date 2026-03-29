@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 import "express-async-errors";
 import "dotenv/config";
-import { execFileSync } from "node:child_process";
+import { execFile } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
+
 import { app } from "./app";
 import { startAllJobs } from "./jobs";
 import { env } from "./lib/env";
@@ -31,30 +35,29 @@ const dbRelPath = env.DATABASE_URL.replace(/^file:/, "");
 const dbAbsPath = resolve(process.cwd(), dbRelPath);
 mkdirSync(dirname(dbAbsPath), { recursive: true });
 
-try {
-    execFileSync(
-        "npx",
-        [
-            "prisma",
-            "migrate",
-            "deploy",
-            "--schema",
-            resolve(packageRoot, "prisma/schema.prisma"),
-        ],
-        {
-            cwd: packageRoot,
-            stdio: "inherit",
-            env: { ...process.env, DATABASE_URL: `file:${dbAbsPath}` },
-        },
-    );
-} catch {
-    logger.error(
-        "[startup] migrations failed — ensure DATABASE_URL is set and the database is accessible",
-    );
-    process.exit(1);
-}
-
 async function main() {
+    try {
+        await execFileAsync(
+            "npx",
+            [
+                "prisma",
+                "migrate",
+                "deploy",
+                "--schema",
+                resolve(packageRoot, "prisma/schema.prisma"),
+            ],
+            {
+                cwd: packageRoot,
+                env: { ...process.env, DATABASE_URL: `file:${dbAbsPath}` },
+            },
+        );
+    } catch {
+        logger.error(
+            "[startup] migrations failed — ensure DATABASE_URL is set and the database is accessible",
+        );
+        process.exit(1);
+    }
+
     // Auto-create a user if none exist
     const userCount = await prisma.user.count();
     if (userCount === 0) {
