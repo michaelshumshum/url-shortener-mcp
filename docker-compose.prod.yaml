@@ -7,6 +7,7 @@ services:
     ports:
       - ${PORT}:${PORT}
     environment:
+      - NODE_ENV=production
       - DATABASE_URL=file:/data/database.db
     volumes:
       - db_data:/data/

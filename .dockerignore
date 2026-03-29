@@ -3,6 +3,11 @@ dist
 coverage
 .DS_Store
 
+.env
+prisma/*.db
+prisma/*.db-shm
+prisma/*.db-wal
+
 .serena
 .claude
 .github
