@@ -198,6 +198,7 @@ When a client supports the [MCP sampling](https://modelcontextprotocol.io/docs/c
 | Variable                       | Default                | Description                                                            |
 | ------------------------------ | ---------------------- | ---------------------------------------------------------------------- |
 | `PORT`                         | `3000`                 | Server port                                                            |
+| `NODE_ENV`                     | `development`          | Node environment. Set to `production` in production deployments — the prod Docker image sets this automatically. |
 | `DATABASE_URL`                 | `file:./prisma/dev.db` | SQLite database path                                                   |
 | `HOSTNAME`                     | `localhost:3000`       | Hostname used when building short URLs                                 |
 | `HTTPS`                        | `false`                | Use `https://` scheme in short URLs                                    |
