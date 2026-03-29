@@ -4,26 +4,35 @@ import { verifyKey } from "../lib/crypto";
 import { logger } from "../lib/logger";
 import { prisma } from "../lib/prisma";
 
-// In-memory cache for users to avoid loading all users on every request
-const USERS_CACHE = new Map<string, User>();
-let lastCacheUpdate = 0;
+// Per-user cache keyed by user ID to avoid a full table scan on every request
+const USER_CACHE = new Map<string, { user: User; expiresAt: number }>();
 const CACHE_TTL = 60000; // 1 minute
 
 /**
- * Retrieves users from cache or database
- * Refreshes cache if it's expired or empty
+ * Looks up a single user by verifying the provided key against each cached/fetched record.
+ * Fetches all users once per TTL window, then caches individually.
  */
-async function getUsersWithCache(): Promise<Array<User>> {
+async function findUserByKey(key: string): Promise<User | undefined> {
     const now = Date.now();
-    if (now - lastCacheUpdate > CACHE_TTL || USERS_CACHE.size === 0) {
-        const users = await prisma.user.findMany();
-        USERS_CACHE.clear();
-        for (const u of users) {
-            USERS_CACHE.set(u.id, u);
+
+    // Try the cache first
+    for (const [id, entry] of USER_CACHE) {
+        if (entry.expiresAt < now) {
+            USER_CACHE.delete(id);
+            continue;
         }
-        lastCacheUpdate = now;
+        if (verifyKey(key, entry.user.salt, entry.user.key)) {
+            return entry.user;
+        }
     }
-    return Array.from(USERS_CACHE.values());
+
+    // Cache miss — fetch all users, populate cache, retry
+    const users = await prisma.user.findMany();
+    for (const u of users) {
+        USER_CACHE.set(u.id, { user: u, expiresAt: now + CACHE_TTL });
+    }
+
+    return users.find((u) => verifyKey(key, u.salt, u.key));
 }
 
 export async function authMiddleware(
@@ -53,8 +62,7 @@ export async function authMiddleware(
             return;
         }
 
-        const users = await getUsersWithCache();
-        const user = users.find((u) => verifyKey(key, u.salt, u.key));
+        const user = await findUserByKey(key);
 
         if (!user) {
             res.status(401).json({ error: "Invalid API key" });
