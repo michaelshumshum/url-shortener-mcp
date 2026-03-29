@@ -318,6 +318,23 @@ describe("DELETE /urls/:slug", () => {
 
         expect(res.status).toBe(403);
     });
+
+    it("actually removes the record so a subsequent GET returns 404", async () => {
+        await request
+            .post("/urls")
+            .set("Authorization", auth1())
+            .send({ longUrl: "https://example.com", slug: "gone-after-del" });
+
+        await request
+            .delete("/urls/gone-after-del")
+            .set("Authorization", auth1());
+
+        const res = await request
+            .get("/urls/gone-after-del")
+            .set("Authorization", auth1());
+
+        expect(res.status).toBe(404);
+    });
 });
 
 // ---------------------------------------------------------------------------
