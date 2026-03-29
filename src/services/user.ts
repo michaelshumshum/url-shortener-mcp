@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import type { User } from "../../generated/prisma/client";
 import { generateSalt, hashKey } from "../lib/crypto";
 import { env } from "../lib/env";
+import { logger } from "../lib/logger";
 import { prisma } from "../lib/prisma";
 
 /**
@@ -48,7 +49,7 @@ export async function deleteInactiveUsers(): Promise<number> {
 }
 
 /**
- *
+ * Updates the lastActivity timestamp for a user. Fire-and-forget — errors are logged but not propagated.
  */
 export function updateUserActivity(userId: string): void {
     prisma.user
@@ -56,9 +57,8 @@ export function updateUserActivity(userId: string): void {
             where: { id: userId },
             data: { lastActivity: new Date() },
         })
-        .then()
-        .catch((error) => {
-            console.error(
+        .catch((error: unknown) => {
+            logger.error(
                 `Failed to update lastActivity for user ${userId}:`,
                 error,
             );
