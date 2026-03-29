@@ -1,0 +1,19 @@
+name: Docker
+
+on:
+  pull_request:
+  push:
+  workflow_call:
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build dev image
+        run: docker compose build
+
+      - name: Build prod image
+        run: docker compose -f docker-compose.prod.yaml build
