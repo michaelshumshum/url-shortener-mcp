@@ -1,0 +1,16 @@
+services:
+  api:
+    build:
+      context: .
+      target: prod
+    env_file: .env
+    ports:
+      - ${PORT}:${PORT}
+    environment:
+      - DATABASE_URL=file:/data/database.db
+    volumes:
+      - db_data:/data/
+    restart: unless-stopped
+
+volumes:
+  db_data:

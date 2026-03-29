@@ -1,0 +1,17 @@
+services:
+  api:
+    build:
+      context: .
+      target: dev
+    env_file: .env
+    ports:
+      - ${PORT}:${PORT}
+    environment:
+      - DATABASE_URL=file:/data/database.db
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - db_data:/data/
+
+volumes:
+  db_data:
