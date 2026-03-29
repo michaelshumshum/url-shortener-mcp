@@ -114,6 +114,36 @@ pnpm build && pnpm start
 
 The server runs on `http://localhost:3000` by default.
 
+## Docker
+
+### Setup
+
+```bash
+pnpm init-env
+```
+
+Edit `.env` to configure your hostname, port, and other settings.
+
+### Development
+
+Hot reload via nodemon + ts-node:
+
+```bash
+docker compose up
+```
+
+### Production
+
+Compiles TypeScript and runs the built output:
+
+```bash
+docker compose -f docker-compose.prod.yaml up
+```
+
+The database is persisted in a named Docker volume (`db_data`).
+
+---
+
 ## MCP Configuration
 
 Add this server to your MCP client (e.g. Claude Desktop, Cursor):
