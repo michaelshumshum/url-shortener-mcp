@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.4.0...v1.4.1) (2026-03-29)
+
+
+### Bug Fixes
+
+* **config:** correct file include patterns in biome.json ([d168c56](https://github.com/michaelshumshum/url-shortener-mcp/commit/d168c56bb18b38acea528cf363e38f9bb588c6f2))
+
 # [1.4.0](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.3.0...v1.4.0) (2026-03-28)
 
 
