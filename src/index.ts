@@ -37,7 +37,7 @@ mkdirSync(dirname(dbAbsPath), { recursive: true });
 
 async function main() {
     try {
-        await execFileAsync(
+        const { stdout, stderr } = await execFileAsync(
             "npx",
             [
                 "prisma",
@@ -51,7 +51,12 @@ async function main() {
                 env: { ...process.env, DATABASE_URL: `file:${dbAbsPath}` },
             },
         );
-    } catch {
+        if (stdout) logger.info(`[migrations] ${stdout.trim()}`);
+        if (stderr) logger.info(`[migrations] ${stderr.trim()}`);
+    } catch (err) {
+        const { stdout, stderr } = err as { stdout?: string; stderr?: string };
+        if (stdout) logger.error(`[migrations] ${stdout.trim()}`);
+        if (stderr) logger.error(`[migrations] ${stderr.trim()}`);
         logger.error(
             "[startup] migrations failed — ensure DATABASE_URL is set and the database is accessible",
         );
