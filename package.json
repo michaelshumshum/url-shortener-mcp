@@ -22,7 +22,7 @@
         "test:ui": "vitest --ui",
         "test:coverage": "vitest run --coverage",
         "prepare": "[ -d .git ] && lefthook install || true",
-        "postinstall": "[ -d .git ] && prisma generate || true"
+        "postinstall": "prisma generate"
     },
     "repository": {
         "type": "git",
@@ -72,12 +72,12 @@
         "@vitest/coverage-istanbul": "4.1.1",
         "@vitest/coverage-v8": "^4.1.1",
         "@vitest/ui": "^4.1.1",
-        "terser": "^5.20.0",
         "lefthook": "^2.1.4",
         "nodemon": "^3.1.14",
         "nyc": "^18.0.0",
         "semantic-release": "^25.0.3",
         "supertest": "^7.2.2",
+        "terser": "^5.20.0",
         "ts-node": "^10.9.2",
         "vitest": "^4.1.1"
     },
@@ -88,5 +88,10 @@
             "prisma",
             "lefthook"
         ]
+    },
+    "optionalDependencies": {
+        "@libsql/darwin-arm64": "^0.5.29",
+        "@libsql/linux-arm64-gnu": "^0.5.29",
+        "@libsql/linux-x64-gnu": "^0.5.29"
     }
 }
