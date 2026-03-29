@@ -500,7 +500,7 @@ describe("GET /:slug", () => {
             .set("Authorization", auth1())
             .send({ longUrl: "https://example.com", slug: "redir-test" });
 
-        const res = await request.get("/redir-test");
+        const res = await request.get("/redir-test").redirects(0);
 
         expect(res.status).toBe(302);
         expect(res.headers.location).toBe("https://example.com");

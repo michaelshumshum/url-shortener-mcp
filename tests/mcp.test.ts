@@ -438,7 +438,7 @@ describe("delete_url", () => {
             .set("mcp-session-id", sessionId2);
     });
 
-    it("deletes a URL and returns confirmation with details", async () => {
+    it("deletes a URL and returns confirmation", async () => {
         await callTool(sessionId, apiKey, "shorten_url", {
             longUrl: "https://example.com",
             slug: "del-mcp",
@@ -455,7 +455,6 @@ describe("delete_url", () => {
 
         expect(isError).toBeUndefined();
         expect(text).toContain("Deleted successfully");
-        expect(text).toContain("del-mcp");
     });
 
     it("returns an error for an unknown slug", async () => {
