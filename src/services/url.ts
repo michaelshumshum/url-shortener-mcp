@@ -149,6 +149,8 @@ export async function deleteUrl(
     if (!url) throw new NotFoundError();
     if (url.userId !== userId) throw new ForbiddenError();
 
+    await prisma.url.delete({ where: { slug } });
+
     return { ...url, shortUrl: shortUrl(url) };
 }
 
