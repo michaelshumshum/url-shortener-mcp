@@ -6,14 +6,16 @@ on:
   workflow_call:
 
 jobs:
-  docker:
+  dev:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Build dev image
         run: docker compose build
 
+  prod:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       - name: Build prod image
         run: docker compose -f docker-compose.prod.yaml build
