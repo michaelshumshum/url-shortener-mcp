@@ -1,3 +1,19 @@
+## [1.4.2](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.4.1...v1.4.2) (2026-03-30)
+
+
+### Bug Fixes
+
+* **postinstall:** always run prisma generate regardless of git context ([2c45509](https://github.com/michaelshumshum/url-shortener-mcp/commit/2c455090ee463d7b0be35e5c98ded8786917b99b))
+* **startup:** log migration stdout/stderr through logger ([3aa4da5](https://github.com/michaelshumshum/url-shortener-mcp/commit/3aa4da5f42a526b02561ef950c8124ba641af6c6))
+* **startup:** run prisma migrations async inside main() ([23578cf](https://github.com/michaelshumshum/url-shortener-mcp/commit/23578cf4c7b404a570a65c21c7d1096cb43d9e53))
+* **url:** delete record in deleteUrl service ([7b39112](https://github.com/michaelshumshum/url-shortener-mcp/commit/7b39112bffe3d760f545e60fa81a7dcff5c96212))
+* **user:** use logger and drop no-op .then() in updateUserActivity ([a2c45ac](https://github.com/michaelshumshum/url-shortener-mcp/commit/a2c45ac3374f7eb21e7f344905fb25a62a88ef12))
+
+
+### Performance Improvements
+
+* **auth:** replace bulk user cache with per-entry TTL cache ([d498257](https://github.com/michaelshumshum/url-shortener-mcp/commit/d498257bb6d95c2b990430bd5fb536aec866b64c))
+
 ## [1.4.1](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.4.0...v1.4.1) (2026-03-29)
 
 
