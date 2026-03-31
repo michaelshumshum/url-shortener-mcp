@@ -210,6 +210,31 @@ export async function searchUrls(
     }));
 }
 
+export type UrlStats = {
+    totalUrls: number;
+    totalEstimatedTokensSaved: number;
+};
+
+/**
+ * Returns aggregate stats for a user's active (non-expired) URLs.
+ * @param userId - The user ID to scope results to
+ */
+export async function getStats(userId: string): Promise<UrlStats> {
+    const result = await prisma.url.aggregate({
+        where: {
+            userId,
+            OR: [{ expiresAt: null }, { expiresAt: { gte: new Date() } }],
+        },
+        _count: { id: true },
+        _sum: { estimatedTokensSaved: true },
+    });
+
+    return {
+        totalUrls: result._count.id,
+        totalEstimatedTokensSaved: result._sum.estimatedTokensSaved ?? 0,
+    };
+}
+
 /**
  * Deletes all expired URLs (used by background cron job)
  * @returns The number of deleted URLs

@@ -583,6 +583,52 @@ describe("search_urls", () => {
 });
 
 // ---------------------------------------------------------------------------
+// get_stats
+// ---------------------------------------------------------------------------
+
+describe("get_stats", () => {
+    let sessionId: string;
+
+    beforeAll(async () => {
+        sessionId = await createSession(apiKey);
+    });
+
+    afterAll(async () => {
+        await request
+            .delete("/mcp")
+            .set("Authorization", `Bearer ${apiKey}`)
+            .set("mcp-session-id", sessionId);
+    });
+
+    it("returns zero counts when user has no URLs", async () => {
+        const stats = await callToolJson<{
+            totalUrls: number;
+            totalEstimatedTokensSaved: number;
+        }>(sessionId, apiKey, "get_stats");
+
+        expect(stats.totalUrls).toBe(0);
+        expect(stats.totalEstimatedTokensSaved).toBe(0);
+    });
+
+    it("counts active URLs and sums estimatedTokensSaved", async () => {
+        await callTool(sessionId, apiKey, "shorten_url", {
+            longUrl: "https://example.com/some/long/path/for/stats",
+        });
+        await callTool(sessionId, apiKey, "shorten_url", {
+            longUrl: "https://example.com/another/long/path/for/stats",
+        });
+
+        const stats = await callToolJson<{
+            totalUrls: number;
+            totalEstimatedTokensSaved: number;
+        }>(sessionId, apiKey, "get_stats");
+
+        expect(stats.totalUrls).toBe(2);
+        expect(stats.totalEstimatedTokensSaved).toBeGreaterThan(0);
+    });
+});
+
+// ---------------------------------------------------------------------------
 // delete_url
 // ---------------------------------------------------------------------------
 

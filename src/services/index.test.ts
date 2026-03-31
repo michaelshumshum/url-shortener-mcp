@@ -13,6 +13,7 @@ import {
     deleteAllUrls,
     deleteExpiredUrls,
     deleteUrl,
+    getStats,
     getUrl,
     listUrls,
     resolveUrl,
@@ -664,6 +665,65 @@ describe("searchUrls", () => {
         expect(result).not.toHaveProperty("clicks");
         expect(result).not.toHaveProperty("userId");
         expect(result).not.toHaveProperty("estimatedTokensSaved");
+    });
+});
+
+// ---------------------------------------------------------------------------
+// getStats
+// ---------------------------------------------------------------------------
+
+describe("getStats", () => {
+    let userId: string;
+
+    afterEach(async () => {
+        await prisma.url.deleteMany({ where: { userId } });
+        await prisma.user.deleteMany({ where: { id: userId } });
+    });
+
+    it("returns zero counts when user has no URLs", async () => {
+        const user = await createUser();
+        userId = user.id;
+
+        const stats = await getStats(userId);
+
+        expect(stats.totalUrls).toBe(0);
+        expect(stats.totalEstimatedTokensSaved).toBe(0);
+    });
+
+    it("counts active URLs and sums estimatedTokensSaved", async () => {
+        const user = await createUser();
+        userId = user.id;
+        await createUrl({
+            longUrl: "https://example.com/a/long/path/one",
+            userId,
+        });
+        await createUrl({
+            longUrl: "https://example.com/a/long/path/two",
+            userId,
+        });
+
+        const stats = await getStats(userId);
+
+        expect(stats.totalUrls).toBe(2);
+        expect(stats.totalEstimatedTokensSaved).toBeGreaterThan(0);
+    });
+
+    it("excludes expired URLs from counts", async () => {
+        const user = await createUser();
+        userId = user.id;
+        await createUrl({ longUrl: "https://example.com/active", userId });
+        await prisma.url.create({
+            data: {
+                slug: randomSlug(),
+                longUrl: "https://example.com/expired",
+                userId,
+                expiresAt: PAST,
+            },
+        });
+
+        const stats = await getStats(userId);
+
+        expect(stats.totalUrls).toBe(1);
     });
 });
 

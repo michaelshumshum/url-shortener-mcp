@@ -23,6 +23,7 @@ import {
     createUrl,
     deleteAllUrls,
     deleteUrl,
+    getStats,
     getUrl,
     listUrls,
     searchUrls,
@@ -341,6 +342,21 @@ function createMcpServer(userId: string): McpServer {
             const results = await searchUrls(userId, { tag, longUrl });
             return {
                 content: [{ type: "text", text: JSON.stringify(results) }],
+            };
+        },
+    );
+
+    server.registerTool(
+        "get_stats",
+        {
+            description:
+                "Return aggregate stats for your active URLs: total count and total estimatedTokensSaved across all of them. Use this to get a quick summary without loading the full URL list.",
+            inputSchema: {},
+        },
+        async () => {
+            const stats = await getStats(userId);
+            return {
+                content: [{ type: "text", text: JSON.stringify(stats) }],
             };
         },
     );
