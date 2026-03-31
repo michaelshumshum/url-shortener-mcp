@@ -14,6 +14,14 @@ export const createUrlSchema = z
         ttl: z.number().int().positive().optional(),
         expiresAt: z.iso.datetime().optional(),
         slug: z.string().min(1).max(32).optional(),
+        tag: z
+            .string()
+            .min(1)
+            .max(128)
+            .optional()
+            .describe(
+                "A short note describing this URL's purpose (e.g. 'auth API reference', 'PR #42'). Used to retrieve URLs later via search_urls without keeping that context in the conversation.",
+            ),
     })
     .refine((data) => !(data.ttl && data.expiresAt), {
         message: "Cannot specify both ttl and expiresAt",
@@ -36,6 +44,20 @@ export const bulkCreateUrlSchema = z.object({
 export const listUrlsSchema = z.object({
     orderBy: z.enum(["createdAt", "expiresAt", "clicks"]).optional(),
     order: z.enum(["asc", "desc"]).optional(),
+});
+
+export const searchUrlsSchema = z.object({
+    tag: z
+        .string()
+        .min(1)
+        .max(128)
+        .optional()
+        .describe("Substring to match within the tag"),
+    longUrl: z
+        .string()
+        .min(1)
+        .optional()
+        .describe("Substring to match within the long URL"),
 });
 
 /**

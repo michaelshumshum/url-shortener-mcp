@@ -17,6 +17,7 @@ export type CreateUrlInput = {
     ttl?: number;
     expiresAt?: Date;
     slug?: string;
+    tag?: string;
 };
 
 /**
@@ -54,6 +55,7 @@ export async function createUrl(
             userId: input.userId,
             expiresAt,
             estimatedTokensSaved,
+            tag: input.tag ?? null,
         },
     });
 
@@ -162,6 +164,50 @@ export async function deleteUrl(slug: string, userId: string): Promise<void> {
     if (url.userId !== userId) throw new ForbiddenError();
 
     await prisma.url.delete({ where: { slug } });
+}
+
+export type UrlSearchResult = {
+    slug: string;
+    shortUrl: string;
+    longUrl: string;
+    tag: string | null;
+    expiresAt: Date | null;
+};
+
+/**
+ * Searches non-expired URLs for a user by tag substring and/or longUrl substring.
+ * Returns a minimal payload to keep context cost low.
+ * Note: substring matching is case-sensitive (SQLite LIKE behaviour).
+ * @param userId - The user ID to scope results to
+ * @param input - At least one of tag or longUrl must be provided
+ */
+export async function searchUrls(
+    userId: string,
+    input: { tag?: string; longUrl?: string },
+): Promise<UrlSearchResult[]> {
+    const urls = await prisma.url.findMany({
+        where: {
+            userId,
+            OR: [{ expiresAt: null }, { expiresAt: { gte: new Date() } }],
+            ...(input.tag !== undefined
+                ? { tag: { contains: input.tag } }
+                : {}),
+            ...(input.longUrl !== undefined
+                ? { longUrl: { contains: input.longUrl } }
+                : {}),
+        },
+        select: {
+            slug: true,
+            longUrl: true,
+            tag: true,
+            expiresAt: true,
+        },
+    });
+
+    return urls.map((url) => ({
+        ...url,
+        shortUrl: shortUrl(url),
+    }));
 }
 
 /**

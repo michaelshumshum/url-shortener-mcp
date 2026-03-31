@@ -1,5 +1,4 @@
 import { randomBytes } from "node:crypto";
-import type { Url } from "../../generated/prisma/client";
 import { env } from "../lib/env";
 import { AlreadyExistsError, ValidationError } from "../lib/errors";
 import { prisma } from "../lib/prisma";
@@ -21,7 +20,7 @@ export function generateSlug(length = 8): string {
  * @param url - The URL record
  * @returns The full short URL
  */
-export function shortUrl(url: Url): string {
+export function shortUrl(url: { slug: string }): string {
     return `${env.HTTPS ? "https" : "http"}://${env.HOSTNAME}/${url.slug}`;
 }
 

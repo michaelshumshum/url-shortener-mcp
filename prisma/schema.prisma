@@ -18,6 +18,7 @@ model Url {
   updatedAt            DateTime  @updatedAt
   clicks               Int       @default(0)
   estimatedTokensSaved Int       @default(0)
+  tag                  String?
   expiresAt            DateTime?
   userId               String
   user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)

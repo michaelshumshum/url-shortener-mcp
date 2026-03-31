@@ -16,6 +16,7 @@ import {
     getUrl,
     listUrls,
     resolveUrl,
+    searchUrls,
 } from "./url";
 import { deleteInactiveUsers } from "./user";
 
@@ -565,6 +566,104 @@ describe("deleteExpiredUrls", () => {
         const count = await deleteExpiredUrls();
 
         expect(count).toBe(0);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// searchUrls
+// ---------------------------------------------------------------------------
+
+describe("searchUrls", () => {
+    let userId: string;
+
+    beforeAll(async () => {
+        const user = await createUser();
+        userId = user.id;
+        await prisma.url.createMany({
+            data: [
+                {
+                    slug: randomSlug(),
+                    longUrl: "https://github.com/org/repo",
+                    userId,
+                    tag: "main repo",
+                },
+                {
+                    slug: randomSlug(),
+                    longUrl: "https://github.com/org/repo/pull/42",
+                    userId,
+                    tag: "PR #42",
+                },
+                {
+                    slug: randomSlug(),
+                    longUrl: "https://docs.example.com",
+                    userId,
+                    tag: "docs",
+                },
+                {
+                    slug: randomSlug(),
+                    longUrl: "https://expired.com",
+                    userId,
+                    tag: "expired",
+                    expiresAt: PAST,
+                },
+            ],
+        });
+    });
+
+    afterAll(async () => {
+        await prisma.url.deleteMany({ where: { userId } });
+        await prisma.user.deleteMany({ where: { id: userId } });
+    });
+
+    it("returns URLs matching a tag substring", async () => {
+        const results = await searchUrls(userId, { tag: "PR" });
+
+        expect(results).toHaveLength(1);
+        expect(results[0].tag).toBe("PR #42");
+    });
+
+    it("returns URLs matching a longUrl substring", async () => {
+        const results = await searchUrls(userId, { longUrl: "github.com" });
+
+        expect(results).toHaveLength(2);
+    });
+
+    it("applies both filters with AND", async () => {
+        const results = await searchUrls(userId, {
+            tag: "main",
+            longUrl: "github.com",
+        });
+
+        expect(results).toHaveLength(1);
+        expect(results[0].tag).toBe("main repo");
+    });
+
+    it("returns empty array when nothing matches", async () => {
+        const results = await searchUrls(userId, { tag: "nonexistent" });
+
+        expect(results).toHaveLength(0);
+    });
+
+    it("excludes expired URLs", async () => {
+        const results = await searchUrls(userId, { tag: "expired" });
+
+        expect(results).toHaveLength(0);
+    });
+
+    it("returns only the minimal fields", async () => {
+        const results = await searchUrls(userId, { tag: "docs" });
+
+        expect(results).toHaveLength(1);
+        const result = results[0] as Record<string, unknown>;
+        expect(result).toHaveProperty("slug");
+        expect(result).toHaveProperty("shortUrl");
+        expect(result).toHaveProperty("longUrl");
+        expect(result).toHaveProperty("tag");
+        expect(result).toHaveProperty("expiresAt");
+        expect(result).not.toHaveProperty("id");
+        expect(result).not.toHaveProperty("clicks");
+        expect(result).not.toHaveProperty("userId");
+        expect(result).not.toHaveProperty("estimatedTokensSaved");
     });
 });
 
