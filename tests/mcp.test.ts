@@ -287,6 +287,22 @@ describe("shorten_url", () => {
         expect(url.expiresAt).toBeDefined();
     });
 
+    it("stores tag and returns it via get_url", async () => {
+        await callTool(sessionId, apiKey, "shorten_url", {
+            longUrl: "https://example.com",
+            slug: "mcp-tagged",
+            tag: "test tag",
+        });
+
+        const url = await callToolJson<{ tag: string | null }>(
+            sessionId,
+            apiKey,
+            "get_url",
+            { slug: "mcp-tagged" },
+        );
+        expect(url.tag).toBe("test tag");
+    });
+
     it("returns an error for an invalid URL", async () => {
         const { isError } = await callTool(sessionId, apiKey, "shorten_url", {
             longUrl: "not-a-url",
@@ -410,6 +426,159 @@ describe("list_urls", () => {
         );
 
         expect(urls.length).toBeGreaterThanOrEqual(2);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// search_urls
+// ---------------------------------------------------------------------------
+
+describe("search_urls", () => {
+    let sessionId: string;
+    let sessionId2: string;
+
+    beforeAll(async () => {
+        sessionId = await createSession(apiKey);
+        sessionId2 = await createSession(apiKey2);
+    });
+
+    afterAll(async () => {
+        await request
+            .delete("/mcp")
+            .set("Authorization", `Bearer ${apiKey}`)
+            .set("mcp-session-id", sessionId);
+        await request
+            .delete("/mcp")
+            .set("Authorization", `Bearer ${apiKey2}`)
+            .set("mcp-session-id", sessionId2);
+    });
+
+    it("returns URLs matching a tag substring", async () => {
+        await callTool(sessionId, apiKey, "shorten_url", {
+            longUrl: "https://github.com/org/repo/pull/99",
+            slug: "s-pr",
+            tag: "PR #99",
+        });
+
+        const results = await callToolJson<{ tag: string }[]>(
+            sessionId,
+            apiKey,
+            "search_urls",
+            { tag: "PR" },
+        );
+
+        expect(results).toHaveLength(1);
+        expect(results[0].tag).toBe("PR #99");
+    });
+
+    it("returns URLs matching a longUrl substring", async () => {
+        await callTool(sessionId, apiKey, "shorten_url", {
+            longUrl: "https://github.com/org/repo",
+            slug: "s-repo",
+            tag: "main repo",
+        });
+        await callTool(sessionId, apiKey, "shorten_url", {
+            longUrl: "https://github.com/org/repo/pulls",
+            slug: "s-pulls",
+            tag: "all PRs",
+        });
+
+        const results = await callToolJson<unknown[]>(
+            sessionId,
+            apiKey,
+            "search_urls",
+            { longUrl: "github.com/org/repo" },
+        );
+
+        expect(results).toHaveLength(2);
+    });
+
+    it("applies tag and longUrl filters with AND", async () => {
+        await callTool(sessionId, apiKey, "shorten_url", {
+            longUrl: "https://github.com/org/main-repo",
+            slug: "s-main",
+            tag: "main source",
+        });
+        await callTool(sessionId, apiKey, "shorten_url", {
+            longUrl: "https://docs.example.com",
+            slug: "s-docs",
+            tag: "main docs",
+        });
+
+        const results = await callToolJson<{ tag: string }[]>(
+            sessionId,
+            apiKey,
+            "search_urls",
+            { tag: "main", longUrl: "github.com" },
+        );
+
+        expect(results).toHaveLength(1);
+        expect(results[0].tag).toBe("main source");
+    });
+
+    it("returns empty array when nothing matches", async () => {
+        const results = await callToolJson<unknown[]>(
+            sessionId,
+            apiKey,
+            "search_urls",
+            { tag: "nonexistent-xyz" },
+        );
+
+        expect(results).toHaveLength(0);
+    });
+
+    it("returns an error when no filter is provided", async () => {
+        const { isError } = await callTool(
+            sessionId,
+            apiKey,
+            "search_urls",
+            {},
+        );
+
+        expect(isError).toBe(true);
+    });
+
+    it("does not return another user's URLs", async () => {
+        await callTool(sessionId, apiKey, "shorten_url", {
+            longUrl: "https://private.example.com",
+            slug: "s-private",
+            tag: "private tag",
+        });
+
+        const results = await callToolJson<unknown[]>(
+            sessionId2,
+            apiKey2,
+            "search_urls",
+            { tag: "private tag" },
+        );
+
+        expect(results).toHaveLength(0);
+    });
+
+    it("returns only the minimal fields", async () => {
+        await callTool(sessionId, apiKey, "shorten_url", {
+            longUrl: "https://minimal.example.com",
+            slug: "s-minimal",
+            tag: "minimal-fields-check",
+        });
+
+        const results = await callToolJson<Record<string, unknown>[]>(
+            sessionId,
+            apiKey,
+            "search_urls",
+            { tag: "minimal-fields-check" },
+        );
+
+        expect(results).toHaveLength(1);
+        expect(results[0]).toHaveProperty("slug");
+        expect(results[0]).toHaveProperty("shortUrl");
+        expect(results[0]).toHaveProperty("longUrl");
+        expect(results[0]).toHaveProperty("tag");
+        expect(results[0]).toHaveProperty("expiresAt");
+        expect(results[0]).not.toHaveProperty("id");
+        expect(results[0]).not.toHaveProperty("clicks");
+        expect(results[0]).not.toHaveProperty("userId");
+        expect(results[0]).not.toHaveProperty("estimatedTokensSaved");
     });
 });
 

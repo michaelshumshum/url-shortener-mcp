@@ -14,13 +14,18 @@ import {
     NotFoundError,
 } from "../lib/errors";
 import { logger } from "../lib/logger";
-import { createUrlSchema, listUrlsSchema } from "../lib/schemas";
+import {
+    createUrlSchema,
+    listUrlsSchema,
+    searchUrlsSchema,
+} from "../lib/schemas";
 import {
     createUrl,
     deleteAllUrls,
     deleteUrl,
     getUrl,
     listUrls,
+    searchUrls,
 } from "../services/url";
 
 export const mcpRouter: Router = Router();
@@ -137,10 +142,10 @@ function createMcpServer(userId: string): McpServer {
         "shorten_url",
         {
             description:
-                "Create a new shortened URL and return only the short URL. Optionally provide a TTL or expiry date. If no slug is provided, an AI-suggested slug will be used. Use get_url or list_urls if you need the full URL record. Token savings are only realised when the slug is reused in future context; single-use URLs cost more context than pasting the original inline.",
+                "Create a new shortened URL and return only the short URL. Optionally provide a TTL or expiry date. If no slug is provided, an AI-suggested slug will be used. Use get_url or list_urls if you need the full URL record. Token savings are only realised when the slug is reused in future context; single-use URLs cost more context than pasting the original inline. Set tag to a brief note about the URL's purpose (e.g. 'auth API docs', 'PR #42') — this lets you retrieve it later via search_urls without needing to remember the slug or keep the context in the conversation.",
             inputSchema: createUrlSchema.shape,
         },
-        async ({ longUrl, ttl, expiresAt, slug }, extra) => {
+        async ({ longUrl, ttl, expiresAt, slug, tag }, extra) => {
             let resolvedSlug = slug;
 
             // If no slug provided and the client supports sampling, ask the LLM to suggest one
@@ -188,6 +193,7 @@ function createMcpServer(userId: string): McpServer {
                     ttl,
                     slug: resolvedSlug,
                     expiresAt: expiresAt ? new Date(expiresAt) : undefined,
+                    tag,
                 });
                 return {
                     content: [{ type: "text", text: url.shortUrl }],
@@ -309,6 +315,32 @@ function createMcpServer(userId: string): McpServer {
                         text: JSON.stringify(urls),
                     },
                 ],
+            };
+        },
+    );
+
+    server.registerTool(
+        "search_urls",
+        {
+            description:
+                "Search your shortened URLs by tag (substring) and/or long URL (substring). Returns a minimal payload — slug, shortUrl, longUrl, tag, expiresAt — to keep context cost low. At least one of tag or longUrl must be provided. Use this to look up a URL by the purpose note you set at creation time, or by a known fragment of the destination URL. Prefer this over list_urls when you know what you're looking for. Note: matching is case-sensitive.",
+            inputSchema: searchUrlsSchema.shape,
+        },
+        async ({ tag, longUrl }) => {
+            if (tag === undefined && longUrl === undefined) {
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: "At least one of tag or longUrl must be provided",
+                        },
+                    ],
+                    isError: true,
+                };
+            }
+            const results = await searchUrls(userId, { tag, longUrl });
+            return {
+                content: [{ type: "text", text: JSON.stringify(results) }],
             };
         },
     );
