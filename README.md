@@ -226,7 +226,7 @@ Each URL record includes `estimatedTokensSaved` — an estimate of how many toke
 
 ### Sampling
 
-When a client supports the [MCP sampling](https://modelcontextprotocol.io/docs/concepts/sampling) capability and no `slug` is provided to `shorten_url`, the server asks the connected LLM to suggest a short, memorable slug based on the destination URL. If sampling is not supported or fails, a random slug is generated instead.
+When a client supports the [MCP sampling](https://modelcontextprotocol.io/docs/concepts/sampling) capability and either `slug` or `tag` is missing from a `shorten_url` call, the server asks the connected LLM to suggest both in a single round-trip — returning a JSON object with a short, memorable slug and a brief purpose tag. If sampling is not supported or fails, a random slug is generated and `tag` is left unset.
 
 ---
 
@@ -267,13 +267,14 @@ The server exposes a REST API under `/urls` using the same Bearer token auth. Sh
 
 | Method   | Path          | Description |
 | -------- | ------------- | ----------- |
-| `GET`    | `/urls`       | List all your shortened URLs. Supports `orderBy` (`createdAt`, `expiresAt`, `clicks`) and `order` (`asc`, `desc`) query params. |
-| `POST`   | `/urls`       | Create a shortened URL. Body: `{ longUrl, slug?, ttl?, expiresAt?, tag? }` |
-| `POST`   | `/urls/bulk`  | Shorten up to 20 URLs in one request. Body: `{ urls: [...] }`. Returns **207** with a per-item `{ longUrl, success, data \| error }` array — partial failures don't abort the batch. |
-| `GET`    | `/urls/:slug` | Get the full record for a URL you own. |
-| `DELETE` | `/urls/:slug` | Delete a URL you own. |
-| `DELETE` | `/urls`       | Delete all your URLs. |
-| `GET`    | `/:slug`      | Redirect to the original URL (public, increments click count). |
+| `GET`    | `/urls`         | List all your shortened URLs. Supports `orderBy` (`createdAt`, `expiresAt`, `clicks`) and `order` (`asc`, `desc`) query params. |
+| `POST`   | `/urls`         | Create a shortened URL. Body: `{ longUrl, slug?, ttl?, expiresAt?, tag? }` |
+| `POST`   | `/urls/bulk`    | Shorten up to 20 URLs in one request. Body: `{ urls: [...] }`. Returns **207** with a per-item `{ longUrl, success, data \| error }` array — partial failures don't abort the batch. |
+| `GET`    | `/urls/search`  | Search your URLs by `tag` substring and/or `longUrl` substring. At least one query param required. Returns a minimal payload (slug, shortUrl, longUrl, tag, expiresAt). |
+| `GET`    | `/urls/:slug`   | Get the full record for a URL you own. |
+| `DELETE` | `/urls/:slug`   | Delete a URL you own. |
+| `DELETE` | `/urls`         | Delete all your URLs. |
+| `GET`    | `/:slug`        | Redirect to the original URL (public, increments click count). |
 
 ---
 
@@ -303,11 +304,23 @@ Once configured, you can ask your LLM assistant:
 
 The assistant will call `shorten_url` with `longUrl`, `slug`, and `ttl` set appropriately, then call `list_urls` to show you the results — returning something like `http://localhost:3000/anthropic-py`.
 
-If no slug is provided and sampling is supported, the assistant will automatically suggest one:
+If no slug or tag is provided and sampling is supported, the assistant will automatically suggest both:
 
 > "Shorten https://github.com/anthropics/anthropic-sdk-python/blob/main/README.md"
 
-→ The server asks the LLM to suggest a slug (e.g. `anthropic-sdk-py`), then creates the short URL using it.
+→ The server asks the LLM to suggest a slug (e.g. `anthropic-sdk-py`) and a tag (e.g. `anthropic python SDK readme`), then creates the short URL with both set.
+
+You can retrieve a URL later by the tag you set at creation time:
+
+> "Find the URL I saved for the Anthropic SDK docs."
+
+→ The assistant calls `search_urls` with `tag: "anthropic"` and returns the matching short URL — no need to keep the full URL in context.
+
+You can also check your overall usage:
+
+> "How many URLs have I shortened and what's my total estimated token savings?"
+
+→ The assistant calls `get_stats` and reports the aggregate count and `totalEstimatedTokensSaved` across all active URLs.
 
 You can also read your URLs as resources:
 
