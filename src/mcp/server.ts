@@ -137,7 +137,7 @@ function createMcpServer(userId: string): McpServer {
         "shorten_url",
         {
             description:
-                "Create a new shortened URL. Optionally provide a TTL or expiry date. If no slug is provided, an AI-suggested slug will be used.",
+                "Create a new shortened URL and return only the short URL. Optionally provide a TTL or expiry date. If no slug is provided, an AI-suggested slug will be used. Use get_url or list_urls if you need the full URL record. Token savings are only realised when the slug is reused in future context; single-use URLs cost more context than pasting the original inline.",
             inputSchema: createUrlSchema.shape,
         },
         async ({ longUrl, ttl, expiresAt, slug }, extra) => {
@@ -190,12 +190,7 @@ function createMcpServer(userId: string): McpServer {
                     expiresAt: expiresAt ? new Date(expiresAt) : undefined,
                 });
                 return {
-                    content: [
-                        {
-                            type: "text",
-                            text: JSON.stringify(url),
-                        },
-                    ],
+                    content: [{ type: "text", text: url.shortUrl }],
                 };
             } catch (err) {
                 if (
@@ -218,7 +213,7 @@ function createMcpServer(userId: string): McpServer {
         "bulk_shorten_urls",
         {
             description:
-                "Shorten multiple URLs in a single call (max 20). Returns per-URL results including any errors.",
+                "Shorten multiple URLs in a single call (max 20). Returns per-URL results including any errors. Each successful result includes estimatedTokensSaved — the per-substitution token saving if that slug is used in place of the full URL in future context. Savings are only realized when slugs are reused; this field does not account for the upfront cost of this tool call.",
             inputSchema: {
                 urls: z
                     .array(z.object(createUrlSchema.shape))
@@ -265,7 +260,7 @@ function createMcpServer(userId: string): McpServer {
         "get_url",
         {
             description:
-                "Get details of a shortened URL by slug without incrementing clicks and see how many times it has been clicked. Only works for URLs you own.",
+                "Get details of a shortened URL by slug without incrementing clicks. Returns the URL record including estimatedTokensSaved — the per-substitution token saving if this slug is used in place of the full URL in future context. Only works for URLs you own.",
             inputSchema: {
                 slug: z.string().describe("The short slug to look up"),
             },
@@ -301,7 +296,8 @@ function createMcpServer(userId: string): McpServer {
     server.registerTool(
         "list_urls",
         {
-            description: "List all your shortened URLs.",
+            description:
+                "List all your shortened URLs. Each entry includes estimatedTokensSaved — the per-substitution token saving if that slug is used in place of the full URL in future context.",
             inputSchema: listUrlsSchema.shape,
         },
         async ({ order, orderBy }) => {

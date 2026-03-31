@@ -252,39 +252,38 @@ describe("shorten_url", () => {
             .set("mcp-session-id", sessionId);
     });
 
-    it("creates a shortened URL", async () => {
-        const url = await callToolJson<{
-            slug: string;
-            longUrl: string;
-            shortUrl: string;
-        }>(sessionId, apiKey, "shorten_url", {
+    it("creates a shortened URL and returns only the short URL", async () => {
+        const { text } = await callTool(sessionId, apiKey, "shorten_url", {
             longUrl: "https://example.com",
         });
 
-        expect(url.slug).toBeDefined();
-        expect(url.longUrl).toBe("https://example.com");
-        expect(url.shortUrl).toMatch(/^http:\/\//);
+        expect(text).toMatch(/^http:\/\//);
     });
 
-    it("creates a URL with a custom slug", async () => {
-        const url = await callToolJson<{ slug: string }>(
-            sessionId,
-            apiKey,
-            "shorten_url",
-            { longUrl: "https://example.com", slug: "mcp-slug" },
-        );
+    it("creates a URL with a custom slug and returns the short URL", async () => {
+        const { text } = await callTool(sessionId, apiKey, "shorten_url", {
+            longUrl: "https://example.com",
+            slug: "mcp-slug",
+        });
 
-        expect(url.slug).toBe("mcp-slug");
+        expect(text).toMatch(/\/mcp-slug$/);
     });
 
     it("creates a URL with a ttl", async () => {
+        const { text } = await callTool(sessionId, apiKey, "shorten_url", {
+            longUrl: "https://example.com",
+            slug: "mcp-ttl",
+            ttl: 3600,
+        });
+
+        expect(text).toMatch(/^http:\/\//);
+
         const url = await callToolJson<{ expiresAt: string | null }>(
             sessionId,
             apiKey,
-            "shorten_url",
-            { longUrl: "https://example.com", ttl: 3600 },
+            "get_url",
+            { slug: "mcp-ttl" },
         );
-
         expect(url.expiresAt).toBeDefined();
     });
 
