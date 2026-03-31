@@ -4,6 +4,7 @@ import {
     bulkCreateUrlSchema,
     createUrlSchema,
     listUrlsSchema,
+    searchUrlsSchema,
     slugParamSchema,
 } from "../lib/schemas";
 import {
@@ -18,6 +19,7 @@ import {
     getUrl,
     listUrls,
     resolveUrl,
+    searchUrls,
 } from "../services/url";
 
 export const urlRouter: IRouter = Router();
@@ -38,13 +40,14 @@ urlRouter.get(
 
 // POST /urls — create a new shortened URL owned by the authenticated user
 urlRouter.post("/", validateBody(createUrlSchema), async (req, res) => {
-    const { longUrl, ttl, expiresAt, slug } = req.body;
+    const { longUrl, ttl, expiresAt, slug, tag } = req.body;
 
     const url = await createUrl({
         longUrl,
         userId: req.user.id,
         ttl,
         slug,
+        tag,
         expiresAt: expiresAt ? new Date(expiresAt) : undefined,
     });
 
@@ -62,6 +65,7 @@ urlRouter.post(
                 ttl?: number;
                 expiresAt?: string;
                 slug?: string;
+                tag?: string;
             }[];
         };
 
@@ -91,6 +95,28 @@ urlRouter.post(
         });
 
         res.status(207).json(output);
+    },
+);
+
+// GET /urls/search — search URLs by tag and/or longUrl substring (owner only)
+urlRouter.get(
+    resolveRelativeRoute(Routes.URLS, Routes.URLS_SEARCH),
+    validateQuery(searchUrlsSchema),
+    async (req: Request, res: Response) => {
+        const { tag, longUrl } = req.query as {
+            tag?: string;
+            longUrl?: string;
+        };
+
+        if (tag === undefined && longUrl === undefined) {
+            res.status(400).json({
+                error: "At least one of tag or longUrl must be provided",
+            });
+            return;
+        }
+
+        const results = await searchUrls(req.user.id, { tag, longUrl });
+        res.json(results);
     },
 );
 

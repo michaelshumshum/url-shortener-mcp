@@ -20,6 +20,7 @@ export const Routes = {
     HEALTH: "/health",
     URLS: "/urls",
     URLS_BULK: "/urls/bulk",
+    URLS_SEARCH: "/urls/search",
 
     MCP: "/mcp",
 

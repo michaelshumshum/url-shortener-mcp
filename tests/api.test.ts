@@ -147,6 +147,16 @@ describe("POST /urls", () => {
         expect(res.status).toBe(400);
     });
 
+    it("creates a URL with a tag and returns it in the response", async () => {
+        const res = await request
+            .post("/urls")
+            .set("Authorization", auth1())
+            .send({ longUrl: "https://example.com", tag: "api test tag" });
+
+        expect(res.status).toBe(201);
+        expect(res.body.tag).toBe("api test tag");
+    });
+
     it("returns 400 for a duplicate slug", async () => {
         await request
             .post("/urls")
@@ -485,6 +495,81 @@ describe("POST /urls/bulk", () => {
             .post("/urls/bulk")
             .send({ urls: [{ longUrl: "https://example.com" }] });
 
+        expect(res.status).toBe(401);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// GET /urls/search
+// ---------------------------------------------------------------------------
+
+describe("GET /urls/search", () => {
+    it("returns URLs matching a tag substring", async () => {
+        await request
+            .post("/urls")
+            .set("Authorization", auth1())
+            .send({ longUrl: "https://github.com/org/repo", tag: "main repo" });
+
+        const res = await request
+            .get("/urls/search?tag=main")
+            .set("Authorization", auth1());
+
+        expect(res.status).toBe(200);
+        expect(res.body.length).toBeGreaterThanOrEqual(1);
+        expect(res.body[0]).toHaveProperty("slug");
+        expect(res.body[0]).toHaveProperty("shortUrl");
+        expect(res.body[0]).toHaveProperty("tag");
+        expect(res.body[0]).not.toHaveProperty("clicks");
+        expect(res.body[0]).not.toHaveProperty("userId");
+    });
+
+    it("returns URLs matching a longUrl substring", async () => {
+        await request
+            .post("/urls")
+            .set("Authorization", auth1())
+            .send({ longUrl: "https://docs.example.com/api", tag: "api docs" });
+
+        const res = await request
+            .get("/urls/search?longUrl=docs.example.com")
+            .set("Authorization", auth1());
+
+        expect(res.status).toBe(200);
+        expect(res.body.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("returns empty array when nothing matches", async () => {
+        const res = await request
+            .get("/urls/search?tag=nonexistent-xyz")
+            .set("Authorization", auth1());
+
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveLength(0);
+    });
+
+    it("returns 400 when no filter is provided", async () => {
+        const res = await request
+            .get("/urls/search")
+            .set("Authorization", auth1());
+
+        expect(res.status).toBe(400);
+    });
+
+    it("does not return another user's URLs", async () => {
+        await request.post("/urls").set("Authorization", auth1()).send({
+            longUrl: "https://private.example.com",
+            tag: "private-tag-xyz",
+        });
+
+        const res = await request
+            .get("/urls/search?tag=private-tag-xyz")
+            .set("Authorization", auth2());
+
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveLength(0);
+    });
+
+    it("returns 401 without auth", async () => {
+        const res = await request.get("/urls/search?tag=test");
         expect(res.status).toBe(401);
     });
 });
