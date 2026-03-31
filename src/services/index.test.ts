@@ -143,6 +143,30 @@ describe("createUrl", () => {
 
         expect(result.expiresAt?.toISOString()).toBe(expiresAt.toISOString());
     });
+
+    it("computes estimatedTokensSaved based on longUrl and slug lengths", async () => {
+        const longUrl =
+            "https://example.com/some/very/long/path/that/uses/many/tokens";
+        const slug = randomSlug();
+
+        const result = await createUrl({ longUrl, userId, slug });
+
+        const expected = Math.max(
+            0,
+            Math.round(longUrl.length / 4) - Math.round(slug.length / 4),
+        );
+        expect(result.estimatedTokensSaved).toBe(expected);
+        expect(result.estimatedTokensSaved).toBeGreaterThan(0);
+    });
+
+    it("clamps estimatedTokensSaved to 0 when slug is longer than the URL", async () => {
+        const longUrl = "https://x.co";
+        const slug = "a-slug-that-is-longer-than-the-url";
+
+        const result = await createUrl({ longUrl, userId, slug });
+
+        expect(result.estimatedTokensSaved).toBe(0);
+    });
 });
 
 // ---------------------------------------------------------------------------

@@ -20,6 +20,19 @@ export type CreateUrlInput = {
 };
 
 /**
+ * Estimates tokens saved per substitution using the ~4 chars/token heuristic.
+ * This is a per-use delta only — it does not account for the token cost of
+ * the shorten_url call itself (which echoes longUrl in both input and output).
+ * Net savings only accumulate when the slug is reused multiple times.
+ */
+function computeTokensSaved(longUrl: string, slug: string): number {
+    return Math.max(
+        0,
+        Math.round(longUrl.length / 4) - Math.round(slug.length / 4),
+    );
+}
+
+/**
  * Creates a new shortened URL with optional expiry
  * @param input - The URL creation parameters
  * @returns The created URL record
@@ -32,6 +45,7 @@ export async function createUrl(
     const slug = input.slug !== undefined ? input.slug : generateSlug();
     await validateSlug(slug);
     const expiresAt = resolveExpiry(input);
+    const estimatedTokensSaved = computeTokensSaved(input.longUrl, slug);
 
     const url = await prisma.url.create({
         data: {
@@ -39,6 +53,7 @@ export async function createUrl(
             longUrl: input.longUrl,
             userId: input.userId,
             expiresAt,
+            estimatedTokensSaved,
         },
     });
 

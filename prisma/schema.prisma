@@ -11,15 +11,16 @@ datasource db {
 }
 
 model Url {
-  id        String    @id @default(cuid())
-  slug      String    @unique
-  longUrl   String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  clicks    Int       @default(0)
-  expiresAt DateTime?
-  userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                   String    @id @default(cuid())
+  slug                 String    @unique
+  longUrl              String
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  clicks               Int       @default(0)
+  estimatedTokensSaved Int       @default(0)
+  expiresAt            DateTime?
+  userId               String
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt(sort: Desc)])
   @@index([expiresAt])
