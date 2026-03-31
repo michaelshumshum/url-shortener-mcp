@@ -169,9 +169,10 @@ Replace `https://your-domain.com` with the public URL of your deployed server.
 
 | Tool                | Description                                                                                                                                                                        |
 | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `shorten_url`       | Create a shortened URL with optional TTL, expiry date, or custom slug. When no slug is provided and the client supports [sampling](#sampling), the connected LLM will suggest one. |
-| `bulk_shorten_urls` | Shorten up to 20 URLs in a single call. Returns per-item results so partial failures don't block the rest.                                                                         |
-| `get_url`           | Get details and click count for a URL you own                                                                                                                                      |
+| `shorten_url`       | Create a shortened URL and return the short URL. Accepts an optional `tag` — a brief note about the URL's purpose (e.g. `"auth API docs"`, `"PR #42"`) used to retrieve it later. When no slug is provided and the client supports [sampling](#sampling), the connected LLM will suggest one. |
+| `bulk_shorten_urls` | Shorten up to 20 URLs in a single call. Each item accepts a `tag`. Returns per-item results so partial failures don't block the rest.                                              |
+| `search_urls`       | Search your URLs by `tag` substring and/or `longUrl` substring. Returns a minimal payload (slug, shortUrl, longUrl, tag, expiresAt) to keep context cost low.                     |
+| `get_url`           | Get the full record and click count for a URL you own                                                                                                                              |
 | `list_urls`         | List all your shortened URLs                                                                                                                                                       |
 | `delete_url`        | Delete a shortened URL by slug                                                                                                                                                     |
 | `delete_all_urls`   | Delete all your shortened URLs                                                                                                                                                     |
@@ -236,12 +237,43 @@ The server exposes a REST API under `/urls` using the same Bearer token auth. Sh
 | Method   | Path          | Description                                                                                                                                                                          |
 | -------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `GET`    | `/urls`       | List all your shortened URLs. Supports `orderBy` (`createdAt`, `expiresAt`, `clicks`) and `order` (`asc`, `desc`) query params.                                                      |
-| `POST`   | `/urls`       | Create a shortened URL. Body: `{ longUrl, slug?, ttl?, expiresAt? }`                                                                                                                 |
+| `POST`   | `/urls`       | Create a shortened URL. Body: `{ longUrl, slug?, ttl?, expiresAt?, tag? }`                                                                                                           |
 | `POST`   | `/urls/bulk`  | Shorten up to 20 URLs in one request. Body: `{ urls: [...] }`. Returns **207** with a per-item `{ longUrl, success, data \| error }` array — partial failures don't abort the batch. |
 | `GET`    | `/urls/:slug` | Get details for a URL you own                                                                                                                                                        |
 | `DELETE` | `/urls/:slug` | Delete a URL you own                                                                                                                                                                 |
 | `DELETE` | `/urls`       | Delete all your URLs                                                                                                                                                                 |
 | `GET`    | `/:slug`      | Redirect to the original URL (public, increments click count)                                                                                                                        |
+
+## AI Agent Rules
+
+Add the following rule to your `CLAUDE.md`, system prompt, or any file your AI client loads as instructions. It tells the agent to automatically load URLs into the shortener during research so they can be retrieved later without bloating the context window.
+
+```
+## URL Shortener
+
+This MCP server is available for shortening and tracking URLs.
+
+When you encounter or are given a URL during research, browsing, or tool use:
+1. Shorten it immediately using the `shorten_url` tool.
+2. Always set a `tag` — a short phrase describing the URL's purpose
+   (e.g. "auth API reference", "PR #42", "deployment guide").
+3. Use the returned short URL in all subsequent messages and tool calls
+   instead of the full URL.
+
+When you need to refer back to a URL:
+- Use `search_urls` with a partial `tag` or `longUrl` fragment to find it.
+- Do not keep full URLs in your context when a slug exists for them.
+
+Tag examples:
+  "stripe webhook docs"   — for https://stripe.com/docs/webhooks
+  "main repo"             — for the project's GitHub URL
+  "PR #99"                — for a specific pull request
+  "staging deploy"        — for a deployment URL you need to revisit
+```
+
+This rule is particularly effective in long research sessions where many URLs appear — tagging at creation time means you can retrieve any link later with a natural-language search rather than scrolling back through the conversation.
+
+---
 
 ## Development
 
