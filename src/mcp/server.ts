@@ -148,11 +148,12 @@ function createMcpServer(userId: string): McpServer {
         },
         async ({ longUrl, ttl, expiresAt, slug, tag }, extra) => {
             let resolvedSlug = slug;
+            let resolvedTag = tag;
 
-            // If no slug provided and the client supports sampling, ask the LLM to suggest one
+            // If slug or tag is missing and the client supports sampling, ask the LLM to suggest both
             const supportsSampling =
                 !!server.server.getClientCapabilities()?.sampling;
-            if (!resolvedSlug && supportsSampling) {
+            if ((!resolvedSlug || !resolvedTag) && supportsSampling) {
                 try {
                     const result = await extra.sendRequest(
                         {
@@ -163,24 +164,56 @@ function createMcpServer(userId: string): McpServer {
                                         role: "user",
                                         content: {
                                             type: "text",
-                                            text: `Suggest a short, memorable, URL-safe slug (lowercase, hyphens allowed, no spaces, max 30 chars) for this URL: ${longUrl}\n\nReply with ONLY the slug, nothing else.`,
+                                            text: `For this URL: ${longUrl}\n\nReply with ONLY a JSON object with two fields:\n- "slug": a short, memorable, URL-safe slug (lowercase, hyphens allowed, no spaces, max 30 chars)\n- "tag": a short phrase describing the URL's purpose (max 60 chars, e.g. "auth API docs", "PR #42")\n\nExample: {"slug":"my-slug","tag":"project readme"}`,
                                         },
                                     },
                                 ],
-                                maxTokens: 20,
+                                maxTokens: 60,
                             },
                         },
                         CreateMessageResultSchema,
                     );
                     if (result.content.type === "text") {
-                        const suggested = result.content.text
-                            .trim()
-                            .toLowerCase()
-                            .replace(/[^a-z0-9-]/g, "-")
-                            .replace(/-+/g, "-")
-                            .replace(/^-|-$/g, "")
-                            .slice(0, 30);
-                        if (suggested) resolvedSlug = suggested;
+                        try {
+                            const parsed = JSON.parse(
+                                result.content.text.trim(),
+                            ) as {
+                                slug?: unknown;
+                                tag?: unknown;
+                            };
+                            if (
+                                !resolvedSlug &&
+                                typeof parsed.slug === "string"
+                            ) {
+                                const s = parsed.slug
+                                    .trim()
+                                    .toLowerCase()
+                                    .replace(/[^a-z0-9-]/g, "-")
+                                    .replace(/-+/g, "-")
+                                    .replace(/^-|-$/g, "")
+                                    .slice(0, 30);
+                                if (s) resolvedSlug = s;
+                            }
+                            if (
+                                !resolvedTag &&
+                                typeof parsed.tag === "string"
+                            ) {
+                                const t = parsed.tag.trim().slice(0, 128);
+                                if (t) resolvedTag = t;
+                            }
+                        } catch {
+                            // JSON parse failed — fall back to treating the whole text as a slug
+                            if (!resolvedSlug) {
+                                const s = result.content.text
+                                    .trim()
+                                    .toLowerCase()
+                                    .replace(/[^a-z0-9-]/g, "-")
+                                    .replace(/-+/g, "-")
+                                    .replace(/^-|-$/g, "")
+                                    .slice(0, 30);
+                                if (s) resolvedSlug = s;
+                            }
+                        }
                     }
                 } catch {
                     // Sampling not supported or failed — fall back to random slug generation
