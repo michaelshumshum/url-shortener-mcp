@@ -86,7 +86,7 @@ describe("logger", () => {
             .mockImplementation(() => true);
         logger.info("hello info");
         expect(spy).toHaveBeenCalledOnce();
-        const output = String(spy.mock.calls[0]![0]);
+        const output = String(spy.mock.calls[0]?.[0]);
         expect(output).toContain("INFO");
         expect(output).toContain("hello info");
     });
@@ -97,7 +97,7 @@ describe("logger", () => {
             .mockImplementation(() => true);
         logger.warn("hello warn");
         expect(spy).toHaveBeenCalledOnce();
-        const output = String(spy.mock.calls[0]![0]);
+        const output = String(spy.mock.calls[0]?.[0]);
         expect(output).toContain("WARN");
         expect(output).toContain("hello warn");
     });
@@ -108,7 +108,7 @@ describe("logger", () => {
             .mockImplementation(() => true);
         logger.error("oops");
         expect(spy).toHaveBeenCalledOnce();
-        const output = String(spy.mock.calls[0]![0]);
+        const output = String(spy.mock.calls[0]?.[0]);
         expect(output).toContain("ERROR");
         expect(output).toContain("oops");
     });
@@ -119,7 +119,7 @@ describe("logger", () => {
             .mockImplementation(() => true);
         const err = new Error("boom");
         logger.error("caught:", err);
-        const output = String(spy.mock.calls[0]![0]);
+        const output = String(spy.mock.calls[0]?.[0]);
         expect(output).toContain("boom");
     });
 
@@ -130,7 +130,7 @@ describe("logger", () => {
         const err = new Error("no-stack");
         delete err.stack;
         logger.error("caught:", err);
-        const output = String(spy.mock.calls[0]![0]);
+        const output = String(spy.mock.calls[0]?.[0]);
         expect(output).toContain("no-stack");
     });
 
@@ -139,7 +139,7 @@ describe("logger", () => {
             .spyOn(process.stderr, "write")
             .mockImplementation(() => true);
         logger.error("label", 42);
-        const output = String(spy.mock.calls[0]![0]);
+        const output = String(spy.mock.calls[0]?.[0]);
         expect(output).toContain("42");
     });
 });
