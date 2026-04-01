@@ -1,8 +1,21 @@
 import { randomBytes } from "node:crypto";
+import type { NextFunction, Request, Response } from "express";
 import supertest from "supertest";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import {
+    afterAll,
+    afterEach,
+    beforeAll,
+    describe,
+    expect,
+    it,
+    vi,
+} from "vitest";
+import { z } from "zod";
 import { app } from "../src/app";
 import { generateSalt, hashKey } from "../src/lib/crypto";
+import { authMiddleware } from "../src/middleware/auth";
+import { errorHandler } from "../src/middleware/error";
+import { validateParams } from "../src/middleware/validate";
 import { prisma } from "./setup";
 
 const request = supertest(app);
@@ -594,5 +607,85 @@ describe("GET /:slug", () => {
     it("returns 404 for an unknown slug", async () => {
         const res = await request.get("/no-such-slug");
         expect(res.status).toBe(404);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// GET /health
+// ---------------------------------------------------------------------------
+
+describe("GET /health", () => {
+    it("returns 200 with ok status and database connected", async () => {
+        const res = await request.get("/health");
+        expect(res.status).toBe(200);
+        expect(res.body.status).toBe("ok");
+        expect(res.body.database).toBe("connected");
+        expect(res.body.timestamp).toBeDefined();
+    });
+});
+
+// ---------------------------------------------------------------------------
+// auth edge cases (unit)
+// ---------------------------------------------------------------------------
+
+describe("auth edge cases", () => {
+    it("returns 401 when Bearer token is empty", async () => {
+        // Node.js HTTP trims trailing whitespace from headers, so "Bearer "
+        // becomes "Bearer" over the wire. Test the middleware directly.
+        const req = {
+            headers: { authorization: "Bearer " },
+        } as unknown as Request;
+        const res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn(),
+        } as unknown as Response;
+        await authMiddleware(req, res, vi.fn() as unknown as NextFunction);
+        expect(res.status).toHaveBeenCalledWith(401);
+        expect(
+            (res.json as ReturnType<typeof vi.fn>).mock.calls[0]?.[0],
+        ).toEqual({
+            error: "Missing API key",
+        });
+    });
+});
+
+// ---------------------------------------------------------------------------
+// validateParams edge case (unit)
+// ---------------------------------------------------------------------------
+
+describe("validateParams", () => {
+    it("calls next with ValidationError when params fail schema", () => {
+        const schema = z.object({ id: z.string().uuid() });
+        const middleware = validateParams(schema);
+        const req = { params: { id: "not-a-uuid" } } as unknown as Request;
+        const next = vi.fn();
+        middleware(req, {} as Response, next);
+        expect(next).toHaveBeenCalledWith(
+            expect.objectContaining({ message: "Invalid parameters" }),
+        );
+    });
+});
+
+// ---------------------------------------------------------------------------
+// errorHandler — generic (non-HTTP) error path
+// ---------------------------------------------------------------------------
+
+describe("errorHandler", () => {
+    it("returns 500 for a plain Error without statusCode", () => {
+        const err = new Error("something exploded");
+        const res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn(),
+        } as unknown as Response;
+        errorHandler(
+            err,
+            {} as Request,
+            res,
+            vi.fn() as unknown as NextFunction,
+        );
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+            error: "something exploded",
+        });
     });
 });
