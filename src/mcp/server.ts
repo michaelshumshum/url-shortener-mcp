@@ -357,7 +357,7 @@ function createMcpServer(userId: string): McpServer {
         "search_urls",
         {
             description:
-                "Search your shortened URLs by tag (substring) and/or long URL (substring). Returns a minimal payload — slug, shortUrl, longUrl, tag, expiresAt — to keep context cost low. At least one of tag or longUrl must be provided. Use this to look up a URL by the purpose note you set at creation time, or by a known fragment of the destination URL. Prefer this over list_urls when you know what you're looking for. Note: matching is case-sensitive.",
+                "Search your shortened URLs by tag (substring) and/or long URL (substring). Returns tag and shortUrl only. At least one of tag or longUrl must be provided. Use this to look up a URL by the purpose note you set at creation time, or by a known fragment of the destination URL. Prefer this over list_urls when you know what you're looking for. Note: matching is case-sensitive.",
             inputSchema: searchUrlsSchema.shape,
         },
         async ({ tag, longUrl }) => {
@@ -373,8 +373,12 @@ function createMcpServer(userId: string): McpServer {
                 };
             }
             const results = await searchUrls(userId, { tag, longUrl });
+            const minimal = results.map(({ tag, shortUrl }) => ({
+                tag,
+                shortUrl,
+            }));
             return {
-                content: [{ type: "text", text: JSON.stringify(results) }],
+                content: [{ type: "text", text: JSON.stringify(minimal) }],
             };
         },
     );

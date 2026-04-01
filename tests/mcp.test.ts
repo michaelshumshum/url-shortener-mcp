@@ -570,11 +570,11 @@ describe("search_urls", () => {
         );
 
         expect(results).toHaveLength(1);
-        expect(results[0]).toHaveProperty("slug");
-        expect(results[0]).toHaveProperty("shortUrl");
-        expect(results[0]).toHaveProperty("longUrl");
         expect(results[0]).toHaveProperty("tag");
-        expect(results[0]).toHaveProperty("expiresAt");
+        expect(results[0]).toHaveProperty("shortUrl");
+        expect(results[0]).not.toHaveProperty("slug");
+        expect(results[0]).not.toHaveProperty("longUrl");
+        expect(results[0]).not.toHaveProperty("expiresAt");
         expect(results[0]).not.toHaveProperty("id");
         expect(results[0]).not.toHaveProperty("clicks");
         expect(results[0]).not.toHaveProperty("userId");
