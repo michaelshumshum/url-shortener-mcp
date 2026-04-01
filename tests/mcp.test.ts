@@ -310,6 +310,30 @@ describe("shorten_url", () => {
 
         expect(isError).toBe(true);
     });
+
+    it("returns an error for a duplicate slug", async () => {
+        await callTool(sessionId, apiKey, "shorten_url", {
+            longUrl: "https://example.com",
+            slug: "mcp-dup-slug",
+        });
+
+        const { isError } = await callTool(sessionId, apiKey, "shorten_url", {
+            longUrl: "https://other.com",
+            slug: "mcp-dup-slug",
+        });
+
+        expect(isError).toBe(true);
+    });
+
+    it("returns an error when ttl exceeds the maximum", async () => {
+        // MAX_EXPIRY_SECONDS is 31_536_000 (1 year)
+        const { isError } = await callTool(sessionId, apiKey, "shorten_url", {
+            longUrl: "https://example.com",
+            ttl: 40_000_000,
+        });
+
+        expect(isError).toBe(true);
+    });
 });
 
 // ---------------------------------------------------------------------------
