@@ -78,6 +78,22 @@ npx url-shortener-mcp \
 
 Flags take precedence over values set in a `.env` file.
 
+### Creating a user
+
+To create a user without starting the server, pass `--create-user`:
+
+```bash
+npx url-shortener-mcp --create-user
+```
+
+You can combine it with `--database-url` to target a specific database:
+
+```bash
+npx url-shortener-mcp --create-user --database-url file:/data/urls.db
+```
+
+This prints a user ID and API key, then exits. **Store the key securely — it will not be shown again.**
+
 ---
 
 ## Getting Started (from source)

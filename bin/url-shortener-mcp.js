@@ -23,4 +23,8 @@ for (let i = 0; i < argv.length; i++) {
     }
 }
 
-require("../dist/src/index");
+if (argv.includes("--create-user")) {
+    require("../dist/scripts/create-user");
+} else {
+    require("../dist/src/index");
+}

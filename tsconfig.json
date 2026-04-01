@@ -20,7 +20,7 @@
         "skipLibCheck": true,
         "types": ["node"]
     },
-    "include": ["src/**/*", "generated/**/*"],
+    "include": ["src/**/*", "generated/**/*", "scripts/**/*"],
     "exclude": ["node_modules", "dist", "**/*.test.ts"],
     "ts-node": {
         "files": true
