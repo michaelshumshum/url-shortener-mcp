@@ -1,3 +1,15 @@
+# [1.5.0](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.4.2...v1.5.0) (2026-04-01)
+
+
+### Features
+
+* **api:** add tag support and GET /urls/search endpoint ([6db99f8](https://github.com/michaelshumshum/url-shortener-mcp/commit/6db99f8e7c1264fc60223830238ed2aad64072b4))
+* **mcp:** add get_stats tool ([b2615f0](https://github.com/michaelshumshum/url-shortener-mcp/commit/b2615f0e196e36c096b4d97afa649a527a33ff17))
+* **mcp:** add search_urls tool and tag support to shorten_url ([67318e0](https://github.com/michaelshumshum/url-shortener-mcp/commit/67318e0ef51c5a18cc5d5db3806ebccdb612168f))
+* **mcp:** extend sampling to suggest slug and tag together ([f3e73ba](https://github.com/michaelshumshum/url-shortener-mcp/commit/f3e73ba963ebf7462eda706d8872259cb2e72e1d))
+* **url:** add tag field for URL purpose annotation ([c4945fd](https://github.com/michaelshumshum/url-shortener-mcp/commit/c4945fd4eb16ee96610481d1726803fe73b7170b))
+* **url:** track estimatedTokensSaved per shortened URL ([a3545de](https://github.com/michaelshumshum/url-shortener-mcp/commit/a3545de14a51c83525d44cb24ec74da9ad0a0b4f))
+
 ## [1.4.2](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.4.1...v1.4.2) (2026-03-30)
 
 
