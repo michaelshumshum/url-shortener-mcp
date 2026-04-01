@@ -1,6 +1,7 @@
 # url-shortener-mcp
 
 ![Coverage](https://michaelshumshum.github.io/url-shortener-mcp/badges.svg)
+[![Test](https://github.com/michaelshumshum/url-shortener-mcp/actions/workflows/test.yml/badge.svg)](https://github.com/michaelshumshum/url-shortener-mcp/actions/workflows/test.yml)
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20+-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
@@ -202,16 +203,16 @@ Replace `https://your-domain.com` with the public URL of your deployed server.
 
 ### Tools
 
-| Tool                | Description |
-| ------------------- | ----------- |
+| Tool                | Description                                                                                                                                                                                                                                                                                                            |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `shorten_url`       | Create a shortened URL and return the short URL. Accepts an optional `tag` — a brief note about the URL's purpose (e.g. `"auth API docs"`, `"PR #42"`) — and an optional TTL, expiry date, or custom slug. When no slug is provided and the client supports [sampling](#sampling), the connected LLM will suggest one. |
-| `bulk_shorten_urls` | Shorten up to 20 URLs in a single call. Each item accepts a `tag`. Returns per-item results so partial failures don't block the rest. |
-| `search_urls`       | Search your URLs by `tag` substring and/or `longUrl` substring. Returns a minimal payload (slug, shortUrl, longUrl, tag, expiresAt) to keep context cost low. At least one filter must be provided. |
-| `get_url`           | Get the full record and click count for a URL you own. |
-| `list_urls`         | List all your shortened URLs. |
-| `get_stats`         | Return aggregate stats for your active URLs: total count and total `estimatedTokensSaved`. Useful for a quick summary without loading the full URL list. |
-| `delete_url`        | Delete a shortened URL by slug. |
-| `delete_all_urls`   | Delete all your shortened URLs. |
+| `bulk_shorten_urls` | Shorten up to 20 URLs in a single call. Each item accepts a `tag`. Returns per-item results so partial failures don't block the rest.                                                                                                                                                                                  |
+| `search_urls`       | Search your URLs by `tag` substring and/or `longUrl` substring. Returns a minimal payload (slug, shortUrl, longUrl, tag, expiresAt) to keep context cost low. At least one filter must be provided.                                                                                                                    |
+| `get_url`           | Get the full record and click count for a URL you own.                                                                                                                                                                                                                                                                 |
+| `list_urls`         | List all your shortened URLs.                                                                                                                                                                                                                                                                                          |
+| `get_stats`         | Return aggregate stats for your active URLs: total count and total `estimatedTokensSaved`. Useful for a quick summary without loading the full URL list.                                                                                                                                                               |
+| `delete_url`        | Delete a shortened URL by slug.                                                                                                                                                                                                                                                                                        |
+| `delete_all_urls`   | Delete all your shortened URLs.                                                                                                                                                                                                                                                                                        |
 
 #### The `tag` field
 
@@ -230,8 +231,8 @@ Each URL record includes `estimatedTokensSaved` — an estimate of how many toke
 
 ### Prompts
 
-| Prompt            | Args      | Description |
-| ----------------- | --------- | ----------- |
+| Prompt            | Args      | Description                                                                                                                                                                                |
+| ----------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `suggest_shorten` | `longUrl` | Injects a user+assistant message pair into the conversation suggesting the user shorten the given URL. Designed to be invoked automatically by clients when a long URL appears in context. |
 
 ### Sampling
@@ -275,34 +276,34 @@ This rule is particularly effective in long research sessions where many URLs ap
 
 The server exposes a REST API under `/urls` using the same Bearer token auth. Short URLs resolve via public redirects at `/:slug`.
 
-| Method   | Path          | Description |
-| -------- | ------------- | ----------- |
-| `GET`    | `/urls`         | List all your shortened URLs. Supports `orderBy` (`createdAt`, `expiresAt`, `clicks`) and `order` (`asc`, `desc`) query params. |
-| `POST`   | `/urls`         | Create a shortened URL. Body: `{ longUrl, slug?, ttl?, expiresAt?, tag? }` |
-| `POST`   | `/urls/bulk`    | Shorten up to 20 URLs in one request. Body: `{ urls: [...] }`. Returns **207** with a per-item `{ longUrl, success, data \| error }` array — partial failures don't abort the batch. |
-| `GET`    | `/urls/search`  | Search your URLs by `tag` substring and/or `longUrl` substring. At least one query param required. Returns a minimal payload (slug, shortUrl, longUrl, tag, expiresAt). |
-| `GET`    | `/urls/:slug`   | Get the full record for a URL you own. |
-| `DELETE` | `/urls/:slug`   | Delete a URL you own. |
-| `DELETE` | `/urls`         | Delete all your URLs. |
-| `GET`    | `/:slug`        | Redirect to the original URL (public, increments click count). |
+| Method   | Path           | Description                                                                                                                                                                          |
+| -------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET`    | `/urls`        | List all your shortened URLs. Supports `orderBy` (`createdAt`, `expiresAt`, `clicks`) and `order` (`asc`, `desc`) query params.                                                      |
+| `POST`   | `/urls`        | Create a shortened URL. Body: `{ longUrl, slug?, ttl?, expiresAt?, tag? }`                                                                                                           |
+| `POST`   | `/urls/bulk`   | Shorten up to 20 URLs in one request. Body: `{ urls: [...] }`. Returns **207** with a per-item `{ longUrl, success, data \| error }` array — partial failures don't abort the batch. |
+| `GET`    | `/urls/search` | Search your URLs by `tag` substring and/or `longUrl` substring. At least one query param required. Returns a minimal payload (slug, shortUrl, longUrl, tag, expiresAt).              |
+| `GET`    | `/urls/:slug`  | Get the full record for a URL you own.                                                                                                                                               |
+| `DELETE` | `/urls/:slug`  | Delete a URL you own.                                                                                                                                                                |
+| `DELETE` | `/urls`        | Delete all your URLs.                                                                                                                                                                |
+| `GET`    | `/:slug`       | Redirect to the original URL (public, increments click count).                                                                                                                       |
 
 ---
 
 ## Environment Variables
 
-| Variable                       | Default                | Description |
-| ------------------------------ | ---------------------- | ----------- |
-| `PORT`                         | `3000`                 | Server port |
+| Variable                       | Default                | Description                                                                                                      |
+| ------------------------------ | ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `PORT`                         | `3000`                 | Server port                                                                                                      |
 | `NODE_ENV`                     | `development`          | Node environment. Set to `production` in production deployments — the prod Docker image sets this automatically. |
-| `DATABASE_URL`                 | `file:./prisma/dev.db` | SQLite database path |
-| `HOSTNAME`                     | `localhost:3000`       | Hostname used when building short URLs |
-| `HTTPS`                        | `false`                | Use `https://` scheme in short URLs |
-| `MAX_EXPIRY_SECONDS`           | `86400`                | Maximum allowed TTL (default: 24 hours) |
-| `EXPIRY_JOB_CRON`              | `* * * * *`            | Cron schedule for cleaning up expired URLs |
-| `INACTIVE_USER_CUTOFF_SECONDS` | `86400`                | Automatically delete users inactive longer than this (default: 1 week) |
-| `INACTIVE_USER_JOB_CRON`       | `0 * * * *`            | Cron schedule for cleaning up inactive users (default: hourly) |
-| `ENABLE_API`                   | `true`                 | Enable the REST API (`/urls`) |
-| `ENABLE_MCP`                   | `true`                 | Enable the MCP server (`/mcp`) |
+| `DATABASE_URL`                 | `file:./prisma/dev.db` | SQLite database path                                                                                             |
+| `HOSTNAME`                     | `localhost:3000`       | Hostname used when building short URLs                                                                           |
+| `HTTPS`                        | `false`                | Use `https://` scheme in short URLs                                                                              |
+| `MAX_EXPIRY_SECONDS`           | `86400`                | Maximum allowed TTL (default: 24 hours)                                                                          |
+| `EXPIRY_JOB_CRON`              | `* * * * *`            | Cron schedule for cleaning up expired URLs                                                                       |
+| `INACTIVE_USER_CUTOFF_SECONDS` | `86400`                | Automatically delete users inactive longer than this (default: 1 week)                                           |
+| `INACTIVE_USER_JOB_CRON`       | `0 * * * *`            | Cron schedule for cleaning up inactive users (default: hourly)                                                   |
+| `ENABLE_API`                   | `true`                 | Enable the REST API (`/urls`)                                                                                    |
+| `ENABLE_MCP`                   | `true`                 | Enable the MCP server (`/mcp`)                                                                                   |
 
 ---
 
