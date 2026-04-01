@@ -1,13 +1,23 @@
 import { randomBytes } from "node:crypto";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import {
+    afterAll,
+    afterEach,
+    beforeAll,
+    describe,
+    expect,
+    it,
+    vi,
+} from "vitest";
 import { prisma } from "../../tests/setup";
-import { generateSalt, hashKey } from "../lib/crypto";
+import { generateSalt, hashKey, verifyKey } from "../lib/crypto";
 import {
     AlreadyExistsError,
+    ExpiryTooLargeError,
     ForbiddenError,
     NotFoundError,
     ValidationError,
 } from "../lib/errors";
+import { logger } from "../lib/logger";
 import {
     createUrl,
     deleteAllUrls,
@@ -19,7 +29,11 @@ import {
     resolveUrl,
     searchUrls,
 } from "./url";
-import { deleteInactiveUsers } from "./user";
+import {
+    createUser as createUserService,
+    deleteInactiveUsers,
+    updateUserActivity,
+} from "./user";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -785,5 +799,76 @@ describe("deleteInactiveUsers", () => {
         expect(
             await prisma.user.findUnique({ where: { id: user.id } }),
         ).not.toBeNull();
+    });
+});
+
+// ---------------------------------------------------------------------------
+// createUser (exported service)
+// ---------------------------------------------------------------------------
+
+describe("createUser (service)", () => {
+    it("creates a user and returns a raw key that verifies against the stored hash", async () => {
+        const { user, key } = await createUserService();
+
+        expect(user.id).toBeDefined();
+        expect(key).toHaveLength(64); // 32 bytes as hex
+        expect(verifyKey(key, user.salt, user.key)).toBe(true);
+
+        await prisma.user.deleteMany({ where: { id: user.id } });
+    });
+});
+
+// ---------------------------------------------------------------------------
+// updateUserActivity
+// ---------------------------------------------------------------------------
+
+describe("updateUserActivity", () => {
+    it("logs an error when the user update fails", async () => {
+        const spy = vi.spyOn(logger, "error").mockImplementation(() => {});
+        updateUserActivity("nonexistent-user-id");
+        // Give the fire-and-forget promise time to settle
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        expect(spy).toHaveBeenCalled();
+        spy.mockRestore();
+    });
+});
+
+// ---------------------------------------------------------------------------
+// resolveExpiry (via createUrl) — ExpiryTooLargeError paths
+// ---------------------------------------------------------------------------
+
+describe("createUrl expiry limits", () => {
+    let userId: string;
+
+    beforeAll(async () => {
+        const rawKey = randomBytes(32).toString("hex");
+        const salt = generateSalt();
+        const user = await prisma.user.create({
+            data: { key: hashKey(rawKey, salt), salt },
+        });
+        userId = user.id;
+    });
+
+    afterAll(async () => {
+        await prisma.url.deleteMany({ where: { userId } });
+        await prisma.user.deleteMany({ where: { id: userId } });
+    });
+
+    it("throws ExpiryTooLargeError when ttl exceeds the maximum", async () => {
+        // MAX_EXPIRY_SECONDS is 31_536_000 (1 year); exceed it
+        await expect(
+            createUrl({
+                longUrl: "https://example.com",
+                userId,
+                ttl: 40_000_000,
+            }),
+        ).rejects.toThrow(ExpiryTooLargeError);
+    });
+
+    it("throws ExpiryTooLargeError when expiresAt is too far in the future", async () => {
+        const expiresAt = new Date(Date.now() + 40_000_000 * 1000);
+        await expect(
+            createUrl({ longUrl: "https://example.com", userId, expiresAt }),
+        ).rejects.toThrow(ExpiryTooLargeError);
     });
 });
