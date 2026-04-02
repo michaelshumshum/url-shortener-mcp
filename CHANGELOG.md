@@ -1,3 +1,11 @@
+# [1.6.0](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.5.0...v1.6.0) (2026-04-02)
+
+
+### Features
+
+* **bin:** add --create-user flag to create a user without starting the server ([acd37d5](https://github.com/michaelshumshum/url-shortener-mcp/commit/acd37d539aac57b5c71b6689710bcd0d0c45c6f5))
+* **mcp:** narrow search_urls response to tag and shortUrl only ([1cc8c73](https://github.com/michaelshumshum/url-shortener-mcp/commit/1cc8c7371c7a5a623074d33c29f1265789377bda))
+
 # [1.5.0](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.4.2...v1.5.0) (2026-04-01)
 
 
