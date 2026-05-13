@@ -81,15 +81,6 @@
         "ts-node": "^10.9.2",
         "vitest": "^4.1.1"
     },
-    "pnpm": {
-        "onlyBuiltDependencies": [
-            "@prisma/engines",
-            "better-sqlite3",
-            "esbuild",
-            "lefthook",
-            "prisma"
-        ]
-    },
     "optionalDependencies": {
         "@libsql/darwin-arm64": "^0.5.29",
         "@libsql/linux-arm64-gnu": "^0.5.29",
