@@ -1,7 +1,7 @@
 FROM node:22-slim AS base
 WORKDIR /app
 RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
-RUN npm install -g pnpm
+RUN npm install -g pnpm@11
 
 FROM base AS dev
 COPY . .
@@ -20,9 +20,9 @@ RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists
 ENV NODE_ENV=production
 RUN addgroup --system app && adduser --system --ingroup app app
 
-COPY package.json pnpm-lock.yaml prisma.config.ts ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml prisma.config.ts ./
 COPY prisma/ ./prisma/
-RUN npm install -g pnpm && pnpm install --prod --frozen-lockfile && npm uninstall -g pnpm
+RUN npm install -g pnpm@11 && pnpm install --prod --frozen-lockfile && npm uninstall -g pnpm
 
 COPY --from=build /app/dist ./dist
 
