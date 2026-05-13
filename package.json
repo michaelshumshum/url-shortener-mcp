@@ -21,7 +21,7 @@
         "test:watch": "vitest",
         "test:ui": "vitest --ui",
         "test:coverage": "vitest run --coverage",
-        "prepare": "[ -d .git ] && lefthook install || true",
+        "prepare": "[ -d .git ] && [ -z \"$CI\" ] && lefthook install || true",
         "postinstall": "prisma generate"
     },
     "repository": {
@@ -84,9 +84,10 @@
     "pnpm": {
         "onlyBuiltDependencies": [
             "@prisma/engines",
+            "better-sqlite3",
             "esbuild",
-            "prisma",
-            "lefthook"
+            "lefthook",
+            "prisma"
         ]
     },
     "optionalDependencies": {
