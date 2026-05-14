@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.6.0...v1.6.1) (2026-05-14)
+
+
+### Bug Fixes
+
+* copy pnpm-workspace.yaml in prod stage and pin pnpm to v11 ([5c945a8](https://github.com/michaelshumshum/url-shortener-mcp/commit/5c945a8f067d479562b8abb13fcb45285baae633))
+
 # [1.6.0](https://github.com/michaelshumshum/url-shortener-mcp/compare/v1.5.0...v1.6.0) (2026-04-02)
 
 
